@@ -120,14 +120,4 @@ supabase/migrations/  Row-level security and database functions
 middleware.ts       Session refresh and route protection
 ```
 
-## Credits
 
-This project builds on [theMystic1/personal-finance-app](https://github.com/theMystic1/personal-finance-app), an implementation of the [Frontend Mentor personal finance app](https://www.frontendmentor.io/challenges/personal-finance-app-JfjtZgyMt1) design challenge.
-
-Changes in this fork:
-
-- Replaced cookie-based identity with Supabase SSR sessions, row-level security and an atomic transfer function
-- Added the AI insights feature with multiple providers and a rule-based fallback
-- Added server-side validation, error handling in forms, and fixed budget deletion
-- Redesigned the UI and made every page responsive
-- Added unit tests, CI, Prettier and this documentation
