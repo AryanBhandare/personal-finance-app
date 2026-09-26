@@ -1,101 +1,133 @@
 # Personal Finance App
 
-## Overview
+A budgeting app for tracking transactions, budgets, savings pots and recurring bills, with AI-generated spending recommendations. Built with Next.js 14 (App Router), TypeScript, Supabase and Tailwind CSS.
 
-The **Personal Finance App** is a full-featured solution for managing personal finances, designed to offer the core functionalities of a traditional banking app. Users can track expenses, manage budgets, monitor savings goals, and generate financial reports—all within a sleek, intuitive interface.
+<!-- Add a screenshot of the Overview page here: ![Overview](docs/overview.png) -->
 
 ## Features
 
-- **Transaction Management**: Easily add, edit, and categorize transactions.
-- **Budgeting**: Set up and manage budgets by category to control spending.
-- **Expense Tracking**: Monitor expenses and get insights into spending habits.
-- **Savings Goals**: Define and track your savings goals.
-- **Authentication**: Secure login and user management with Supabase.
-- **Financial Reports**: View detailed reports to analyze income and spending trends.
+- **Overview dashboard**: balance, income and expenses, with summaries of pots, budgets, recent transactions and upcoming bills
+- **Transactions**: search, sort, filter by category, and paginate
+- **Budgets**: monthly limits per category, with a spending chart and the latest spending in each category
+- **Savings pots**: targets with progress bars; add or withdraw money
+- **Recurring bills**: paid, due-soon and upcoming status for each bill
+- **Transfers**: send money to another user by account ID
+- **AI insights**: personalised recommendations from your budgets, pots and bills
+- **Responsive**: works from 320px phones up to wide desktops
 
-## Built With
+## AI insights
 
-- **Frontend**:
-  - **Next.js**: React framework for server-side rendering and static site generation.
-  - **TypeScript**: Strict typing for robust and maintainable code.
-  - **Tailwind CSS**: Utility-first CSS framework for styling.
-- **Backend**:
-  - **Supabase**: Provides authentication, database management, and API for handling user data, transactions, and budgets.
-- **Database**: PostgreSQL (via Supabase)
+The Overview page generates three or four recommendations from a snapshot of the user's finances. The snapshot includes budget limits against the last 30 days of spending, unbudgeted categories, pot progress, recurring bills and recent transactions. Names and account IDs are not included.
 
-## Installation
+```mermaid
+flowchart LR
+    A[Snapshot of user's finances] --> B{Provider configured?}
+    B -->|ANTHROPIC_API_KEY| C[Claude]
+    B -->|GEMINI_API_KEY| D[Gemini]
+    B -->|OPENROUTER_API_KEY| E[OpenRouter free models]
+    C -- fails --> D
+    D -- fails --> E
+    E -- fails --> F[Rule-based tips]
+    B -->|none| F
+    C & D & E & F --> G[Validated JSON cards]
+```
 
-### Prerequisites
+- **Structured output**: every provider is asked for the same JSON schema, and responses are validated with Zod before they're shown. Categories and priorities that don't match are mapped to safe defaults instead of failing the whole response.
+- **Graceful fallback**: each configured provider is tried in turn. Rate limits, bad keys, overloaded free models and unreadable replies fall through to the next provider, and finally to rule-based tips computed from the user's own numbers. The card explains why a fallback was used.
+- **Cost control**: generation is on demand and cached per user for an hour, keyed on a hash of the snapshot, so repeat views don't call the API again.
 
-- Node.js (v16 or later)
-- npm or Yarn
-- Supabase Account
+The logic is in [`app/_lib/insights.ts`](app/_lib/insights.ts) (providers) and [`app/_lib/insights-core.ts`](app/_lib/insights-core.ts) (snapshot, schema and rules, unit tested).
 
-### Steps
+## Security model
 
-1. **Clone the repository**
+- **Sessions**: authentication uses Supabase Auth with [`@supabase/ssr`](https://supabase.com/docs/guides/auth/server-side/nextjs). Every server action gets the user from a session verified with Supabase; nothing trusts client-supplied IDs.
+- **Row-level security**: users can only read and change their own `owners` and `accountsTrx` rows ([migration](supabase/migrations/0001_rls_and_transfers.sql)).
+- **Atomic transfers**: `transfer_money()` is a Postgres function that checks the amount, the sender's balance and the receiver, locks both accounts in a fixed order, and updates them in one transaction.
+- **Input validation**: budget, pot, transfer and profile inputs are validated server-side with Zod.
+
+## Tech stack
+
+| Area          | Tools                                                         |
+| ------------- | ------------------------------------------------------------- |
+| Framework     | Next.js 14 (App Router, Server Actions), React 18, TypeScript |
+| Data and auth | Supabase (Postgres, Auth, Storage), row-level security        |
+| UI            | Tailwind CSS, Recharts, React Hook Form, React Icons          |
+| AI            | Anthropic SDK, Google Gen AI SDK, OpenRouter, Zod             |
+| Quality       | Vitest, ESLint, Prettier, GitHub Actions CI                   |
+
+## Getting started
+
+### 1. Install
 
 ```bash
-git clone https://github.com/theMystic1/personal-finance-app.git
+git clone <your-repo-url>
 cd personal-finance-app
-```
-
-2. **Install dependencies**
-
-```bash
 npm install
-# or if you use yarn
-yarn install
 ```
 
-3. **Configure Supabase**  
-   Create a project on Supabase and get your API keys. Add them to an `.env.local` file in your project root:
+### 2. Configure environment
 
-```
-NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
-SUPABASE_SERVICE_KEY=your-supabase-service-key
-```
+Copy `.env.example` to `.env.local` and fill in your Supabase URL and anon key (Supabase dashboard: **Project Settings → API**). The AI keys are optional; without them the app shows rule-based tips.
 
-4. **Run the development server**
+| Variable                   | Required | Notes                                                           |
+| -------------------------- | -------- | --------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Yes      |                                                                 |
+| `NEXT_PUBLIC_SUPABASE_KEY` | Yes      | Anon (public) key                                               |
+| `ANTHROPIC_API_KEY`        | No       | Claude, paid                                                    |
+| `GEMINI_API_KEY`           | No       | Free tier at [aistudio.google.com](https://aistudio.google.com) |
+| `OPENROUTER_API_KEY`       | No       | Free models at [openrouter.ai](https://openrouter.ai)           |
+
+### 3. Set up the database
+
+The app expects two tables:
+
+- `owners`: `user_id`, `name`, `email`, `avatar`, `isDemo`
+- `accountsTrx`: `owners_id`, plus JSON columns `transactions`, `budgets`, `pots` and `balance`
+
+Then run [`supabase/migrations/0001_rls_and_transfers.sql`](supabase/migrations/0001_rls_and_transfers.sql) in the Supabase SQL Editor to enable row-level security and create the transfer functions. For avatar uploads, create a public storage bucket named `avatars`.
+
+### 4. Run
 
 ```bash
 npm run dev
 ```
 
-5. **Build for production**
+Sign up with **Start with demo transactions** ticked to get sample data.
 
-```bash
-npm run build
+## Scripts
+
+| Command             | What it does                 |
+| ------------------- | ---------------------------- |
+| `npm run dev`       | Start the development server |
+| `npm run build`     | Production build             |
+| `npm test`          | Run unit tests (Vitest)      |
+| `npm run lint`      | ESLint                       |
+| `npm run typecheck` | TypeScript check             |
+| `npm run format`    | Format with Prettier         |
+
+## Project structure
+
+```
+app/
+  _components/      UI by feature (overview, budgets, pots, transactions, ...)
+  _lib/
+    actions.ts      Server actions for data, auth and money movement
+    insights.ts     AI provider chain (server action)
+    insights-core.ts  Snapshot, schema and rule-based fallback (tested)
+    supabase/       Server, browser and middleware Supabase clients
+  (routes)          /, /transactions, /budgets, /pots, /recurring_bills, /settings
+supabase/migrations/  Row-level security and database functions
+middleware.ts       Session refresh and route protection
 ```
 
-6. **Run the production build**
+## Credits
 
-```bash
-npm start
-```
+This project builds on [theMystic1/personal-finance-app](https://github.com/theMystic1/personal-finance-app), an implementation of the [Frontend Mentor personal finance app](https://www.frontendmentor.io/challenges/personal-finance-app-JfjtZgyMt1) design challenge.
 
-## How to Use
+Changes in this fork:
 
-1. **Register/Login**: Create an account using Supabase's authentication or log in with existing credentials.
-2. **Manage Budgets**: Create budgets by category, such as "Rent," "Groceries," and "Entertainment."
-3. **Track Expenses**: Add transactions manually or import them to monitor spending across categories.
-4. **Monitor Savings**: Set up savings goals and track progress toward financial milestones.
-5. **Generate Reports**: View detailed reports and graphs that give insight into income and expenditure patterns.
-
-## Deployment
-
-This app can be deployed to platforms like **Vercel** or **Netlify**.
-
-1. **Deploy to Vercel**
-   - Connect the repository to Vercel.
-   - Add your environment variables (Supabase keys) in the Vercel dashboard.
-   - Deploy your app.
-
-## Contributing
-
-Feel free to contribute by forking the repository, working on features or bug fixes, and submitting a pull request. Make sure to follow the guidelines.
-
-## License
-
-This project is open-source and available under the [MIT License](LICENSE).
+- Replaced cookie-based identity with Supabase SSR sessions, row-level security and an atomic transfer function
+- Added the AI insights feature with multiple providers and a rule-based fallback
+- Added server-side validation, error handling in forms, and fixed budget deletion
+- Redesigned the UI and made every page responsive
+- Added unit tests, CI, Prettier and this documentation
