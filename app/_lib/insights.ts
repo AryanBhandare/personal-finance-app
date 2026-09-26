@@ -1,12 +1,12 @@
 "use server";
 
 import { createHash } from "crypto";
-import { cookies } from "next/headers";
 import Anthropic from "@anthropic-ai/sdk";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import { ApiError, GoogleGenAI } from "@google/genai";
 import { z } from "zod";
 import { getTransaction } from "./actions";
+import { getSessionUserId } from "./supabase/server";
 
 const CATEGORIES = [
   "budget",
@@ -445,7 +445,7 @@ export async function getInsights({
   force = false,
   cachedOnly = false,
 } = {}): Promise<InsightsResult | null> {
-  const userId = cookies().get("user")?.value.replace(/"/g, "");
+  const userId = await getSessionUserId();
   if (!userId) {
     return cachedOnly
       ? null

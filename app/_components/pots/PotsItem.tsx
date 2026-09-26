@@ -81,7 +81,8 @@ function PotsItem({ item }: propsPots) {
         alert("Cannot delete pot with available savings");
         return;
       }
-      await deletePots(item.id);
+      const res = await deletePots(item.id);
+      if (!res.ok) alert(res.error);
     } catch (error) {
       console.error(error);
     } finally {
@@ -184,42 +185,11 @@ function PotsItem({ item }: propsPots) {
         <div
           style={{
             width: `${calculatePercentage(item.total, item.target).toFixed(
-              2
+              2,
             )}%`,
+            backgroundColor: getThemeHex(theme ?? ""),
           }}
-          className={`h-full max-w-full rounded-full z-30 transition-[width] duration-700 ease-out ${
-            theme === "green"
-              ? "bg-secondary-green"
-              : theme === "yellow"
-              ? "bg-secondary-yellow"
-              : theme === "cyan"
-              ? "bg-secondary-cyan"
-              : theme === "navy"
-              ? "bg-secondary-navy"
-              : theme === "red"
-              ? "bg-secondary-red"
-              : theme === "purple"
-              ? "bg-secondary-purple"
-              : theme === "lightPurple"
-              ? "bg-secondary-lightPurple"
-              : theme === "turquoise"
-              ? "bg-secondary-turquoise"
-              : theme === "brown"
-              ? "bg-secondary-brown"
-              : theme === "magenta"
-              ? "bg-secondary-magenta"
-              : theme === "blue"
-              ? "bg-secondary-blue"
-              : theme === "navyGrey"
-              ? "bg-secondary-navyGrey"
-              : theme === "amyGreen"
-              ? "bg-secondary-amyGreen"
-              : theme === "gold"
-              ? "bg-secondary-gold"
-              : theme === "orange"
-              ? "bg-secondary-orange"
-              : ""
-          }`}
+          className="h-full max-w-full rounded-full z-30 transition-[width] duration-700 ease-out"
         ></div>
       </div>
       <FlexItems>

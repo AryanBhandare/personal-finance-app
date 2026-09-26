@@ -28,14 +28,14 @@ async function Budget() {
   const findTransactionsInBudgets = (): TrxType[] => {
     // Create a Set for budget categories (normalized to lowercase)
     const budgetCategories = new Set(
-      budgets?.map((bud: BudgetProps) => bud.category.toLowerCase())
+      budgets?.map((bud: BudgetProps) => bud.category.toLowerCase()),
     );
 
     // Filter transactions based on budget categories
     return transactions.filter((trans: TrxType) =>
       trans.category
         ? budgetCategories.has(trans.category.toLowerCase())
-        : false
+        : false,
     );
   };
 

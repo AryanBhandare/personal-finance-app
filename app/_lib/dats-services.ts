@@ -1,9 +1,9 @@
 import json from "@/public/data.json";
-import { supabase } from "./supabase";
+import { createClient } from "./supabase/browser";
 
 export const formatCurrency = (value: number) =>
   new Intl.NumberFormat("en", { style: "currency", currency: "USD" }).format(
-    value
+    value,
   );
 
 type DateItem = {
@@ -13,7 +13,7 @@ type DateItem = {
 
 export function formatDateTime(
   dateString: string,
-  itsDate?: boolean
+  itsDate?: boolean,
 ): string | number {
   // Create a new Date object from the ISO date string
   const date = new Date(dateString);
@@ -65,8 +65,8 @@ export async function uploadImage(file: File) {
   const imageName = `${crypto.randomUUID()}-${file.name}`;
 
   // Upload the file to the 'avatars' storage bucket in Supabase
-  const { error: storageError, data } = await supabase.storage
-    .from("avatars")
+  const { error: storageError } = await createClient()
+    .storage.from("avatars")
     .upload(imageName, file);
 
   if (storageError) {
@@ -79,11 +79,6 @@ export async function uploadImage(file: File) {
 
   return imageUrl;
 }
-
-
-
-
-
 
 // export async function getTransactions() {
 //   const { data: transactions, error } = await supabase

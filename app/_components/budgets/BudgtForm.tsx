@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode, useEffect, useState } from "react";
+import { getThemeHex } from "@/app/_lib/theme";
 import GridItems from "../overview/GridItems";
 import carDown from "@/public/assets/images/icon-caret-down.svg";
 import Image from "next/image";
@@ -8,16 +9,15 @@ import Button from "../ui/Button";
 import { useForm } from "react-hook-form";
 import SpinnerMini from "../ui/SpinnerMini";
 import {
+  ActionResult,
   createBudget,
   editBudget,
   getTransaction,
-  getTransactions,
 } from "@/app/_lib/actions";
 import Budgets, { budgetsProps as budp } from "../overview/Budgets";
 import { Item, itemsColorType } from "./BudgetsItem";
 import { potsProp } from "../pots/Pots";
 import { generateUniqueId } from "@/app/_lib/dats-services";
-import { createServer } from "net";
 
 export { carDown };
 export type budgetsProps = {
@@ -55,6 +55,7 @@ function BudgtForm({ type, message, edit, close }: budgetsProps) {
   const [existCat, setXistCat] = useState([]);
   // const [budgett, setBudgett] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [formError, setFormError] = useState("");
 
   function handleOpenColor() {
     setColorOpen((prevState) => ({
@@ -72,6 +73,8 @@ function BudgtForm({ type, message, edit, close }: budgetsProps) {
     };
 
     setLoading(true);
+    setFormError("");
+    let res: ActionResult;
     try {
       if (type === "edit") {
         const datay = {
@@ -81,15 +84,17 @@ function BudgtForm({ type, message, edit, close }: budgetsProps) {
           budgetId: edit?.budgetId,
         };
 
-        await editBudget(edit?.budgetId, datay);
+        res = await editBudget(edit?.budgetId, datay);
       } else {
-        await createBudget(formValue);
+        res = await createBudget(formValue);
       }
+      if (!res.ok) return setFormError(res.error);
+      close?.();
     } catch (error) {
-      console.error("Budget creation failed");
+      console.error("Budget save failed", error);
+      setFormError("Something went wrong. Try again.");
     } finally {
       setLoading(false);
-      close?.();
     }
   }
 
@@ -209,39 +214,10 @@ function BudgtForm({ type, message, edit, close }: budgetsProps) {
           >
             <span className="flex items-center gap-4">
               <div
-                className={`h-4 w-4 rounded-full ${
-                  colorOpen.color.theme === "green"
-                    ? "bg-secondary-green"
-                    : colorOpen.color.theme === "yellow"
-                    ? "bg-secondary-yellow"
-                    : colorOpen.color.theme === "cyan"
-                    ? "bg-secondary-cyan"
-                    : colorOpen.color.theme === "navy"
-                    ? "bg-secondary-navy"
-                    : colorOpen.color.theme === "red"
-                    ? "bg-secondary-red"
-                    : colorOpen.color.theme === "purple"
-                    ? "bg-secondary-purple"
-                    : colorOpen.color.theme === "lightPurple"
-                    ? "bg-secondary-lightPurple"
-                    : colorOpen.color.theme === "turquoise"
-                    ? "bg-secondary-turquoise"
-                    : colorOpen.color.theme === "brown"
-                    ? "bg-secondary-brown"
-                    : colorOpen.color.theme === "magenta"
-                    ? "bg-secondary-magenta"
-                    : colorOpen.color.theme === "blue"
-                    ? "bg-secondary-blue"
-                    : colorOpen.color.theme === "navyGrey"
-                    ? "bg-secondary-navyGrey"
-                    : colorOpen.color.theme === "amyGreen"
-                    ? "bg-secondary-amyGreen"
-                    : colorOpen.color.theme === "gold"
-                    ? "bg-secondary-gold"
-                    : colorOpen.color.theme === "orange"
-                    ? "bg-secondary-orange"
-                    : ""
-                }`}
+                className="h-4 w-4 rounded-full"
+                style={{
+                  backgroundColor: getThemeHex(colorOpen.color.theme ?? ""),
+                }}
               ></div>
               <p className="capitalize">
                 {type === "edit" ? edit?.theme : colorOpen.color.theme}
@@ -253,6 +229,12 @@ function BudgtForm({ type, message, edit, close }: budgetsProps) {
             </span>
           </button>
         </Input>
+
+        {formError ? (
+          <p className="rounded-xl bg-secondary-red/10 px-4 py-3 text-sm text-secondary-red">
+            {formError}
+          </p>
+        ) : null}
 
         <Button
           className="flex items-center justify-center"
@@ -343,39 +325,8 @@ export function ColorMenu({
         >
           <span className="flex items-center gap-4">
             <div
-              className={`h-4 w-4 rounded-full ${
-                color.theme === "green"
-                  ? "bg-secondary-green"
-                  : color.theme === "yellow"
-                  ? "bg-secondary-yellow"
-                  : color.theme === "cyan"
-                  ? "bg-secondary-cyan"
-                  : color.theme === "navy"
-                  ? "bg-secondary-navy"
-                  : color.theme === "red"
-                  ? "bg-secondary-red"
-                  : color.theme === "purple"
-                  ? "bg-secondary-purple"
-                  : color.theme === "lightPurple"
-                  ? "bg-secondary-lightPurple"
-                  : color.theme === "turquoise"
-                  ? "bg-secondary-turquoise"
-                  : color.theme === "brown"
-                  ? "bg-secondary-brown"
-                  : color.theme === "magenta"
-                  ? "bg-secondary-magenta"
-                  : color.theme === "blue"
-                  ? "bg-secondary-blue"
-                  : color.theme === "navyGrey"
-                  ? "bg-secondary-navyGrey"
-                  : color.theme === "amyGreen"
-                  ? "bg-secondary-amyGreen"
-                  : color.theme === "gold"
-                  ? "bg-secondary-gold"
-                  : color.theme === "orange"
-                  ? "bg-secondary-orange"
-                  : ""
-              }`}
+              className="h-4 w-4 rounded-full"
+              style={{ backgroundColor: getThemeHex(color.theme ?? "") }}
             ></div>
             <p className="text-grey-500 capitalize">{color.theme}</p>
           </span>

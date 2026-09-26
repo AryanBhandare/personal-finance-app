@@ -1,4 +1,4 @@
-import { getTransaction, getTransactions } from "@/app/_lib/actions";
+import { getTransaction } from "@/app/_lib/actions";
 import AIInsights from "./AIInsights";
 import BalanceItem from "./BalanceItem";
 import {
@@ -19,7 +19,7 @@ async function Overview() {
   const { transactions, budgets, pots } = data || [];
 
   const recuTrans = transactions?.filter(
-    (transaction: TrxType) => transaction.recurring === true
+    (transaction: TrxType) => transaction.recurring === true,
   );
 
   const balanceDetails = [
@@ -70,7 +70,9 @@ async function Overview() {
             <div className="flex flex-col gap-6">
               <GridItems>
                 <FlexItems>
-                  <HeaderGrid icon={<LuPieChart size={18} />}>Budgets</HeaderGrid>
+                  <HeaderGrid icon={<LuPieChart size={18} />}>
+                    Budgets
+                  </HeaderGrid>
                   <LinkButton href="/budgets">See Details</LinkButton>
                 </FlexItems>
 

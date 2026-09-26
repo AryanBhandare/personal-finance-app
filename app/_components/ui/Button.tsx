@@ -19,12 +19,12 @@ function Button({
         type === "primary"
           ? "bg-grey-900 border-grey-900 text-beige-100 shadow-sm hover:bg-grey-900/85 hover:shadow-md"
           : type === "secondary"
-          ? "bg-beige-100 border-transparent text-grey-900 hover:bg-secondary-white hover:border-grey-900/80"
-          : type === "tertiary"
-          ? "border-transparent text-grey-500 hover:text-grey-900"
-          : type === "danger"
-          ? "bg-secondary-red border-secondary-red text-beige-100 shadow-sm hover:bg-secondary-red/85"
-          : ""
+            ? "bg-beige-100 border-transparent text-grey-900 hover:bg-secondary-white hover:border-grey-900/80"
+            : type === "tertiary"
+              ? "border-transparent text-grey-500 hover:text-grey-900"
+              : type === "danger"
+                ? "bg-secondary-red border-secondary-red text-beige-100 shadow-sm hover:bg-secondary-red/85"
+                : ""
       } capitalize ${className}`}
       onClick={onClick}
     >

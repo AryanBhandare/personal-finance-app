@@ -82,8 +82,8 @@ function BudgetsItem({ item }: Item) {
   async function handleDelBudget() {
     setIsDeleting(true);
     try {
-      await deleteBudget(budgetId);
-      // TODO: Update state
+      const res = await deleteBudget(budgetId);
+      if (!res.ok) alert(res.error);
     } catch (error) {
       console.error("Error deleting budget:", error);
     } finally {
@@ -160,11 +160,7 @@ function BudgetsItem({ item }: Item) {
         </button>
 
         {openMenu.menu ? (
-          <FormEdit
-            handleEdit={handleOpenModal}
-            type="budgets"
-            className=""
-          />
+          <FormEdit handleEdit={handleOpenModal} type="budgets" className="" />
         ) : null}
       </FlexItems>
 
@@ -177,81 +173,19 @@ function BudgetsItem({ item }: Item) {
           style={{
             width: `${calculatePercentage(
               tottl < 0 ? tottl * -1 : tottl,
-              maximum
+              maximum,
             ).toFixed(2)}%`,
+            backgroundColor: getThemeHex(theme ?? ""),
           }}
-          className={`h-full max-w-full rounded-md z-30 transition-[width] duration-700 ease-out ${
-            theme === "green"
-              ? "bg-secondary-green"
-              : theme === "yellow"
-              ? "bg-secondary-yellow"
-              : theme === "cyan"
-              ? "bg-secondary-cyan"
-              : theme === "navy"
-              ? "bg-secondary-navy"
-              : theme === "red"
-              ? "bg-secondary-red"
-              : theme === "purple"
-              ? "bg-secondary-purple"
-              : theme === "lightPurple"
-              ? "bg-secondary-lightPurple"
-              : theme === "turquoise"
-              ? "bg-secondary-turquoise"
-              : theme === "brown"
-              ? "bg-secondary-brown"
-              : theme === "magenta"
-              ? "bg-secondary-magenta"
-              : theme === "blue"
-              ? "bg-secondary-blue"
-              : theme === "navyGrey"
-              ? "bg-secondary-navyGrey"
-              : theme === "amyGreen"
-              ? "bg-secondary-amyGreen"
-              : theme === "gold"
-              ? "bg-secondary-gold"
-              : theme === "orange"
-              ? "bg-secondary-orange"
-              : ""
-          }`}
+          className="h-full max-w-full rounded-md z-30 transition-[width] duration-700 ease-out"
         ></div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 my-5">
         <div className="flex items-center gap-4">
           <div
-            className={`h-11 w-1 rounded-full ${
-              theme === "green"
-                ? "bg-secondary-green"
-                : theme === "yellow"
-                ? "bg-secondary-yellow"
-                : theme === "cyan"
-                ? "bg-secondary-cyan"
-                : theme === "navy"
-                ? "bg-secondary-navy"
-                : theme === "red"
-                ? "bg-secondary-red"
-                : theme === "purple"
-                ? "bg-secondary-purple"
-                : theme === "lightPurple"
-                ? "bg-secondary-lightPurple"
-                : theme === "turquoise"
-                ? "bg-secondary-turquoise"
-                : theme === "brown"
-                ? "bg-secondary-brown"
-                : theme === "magenta"
-                ? "bg-secondary-magenta"
-                : theme === "blue"
-                ? "bg-secondary-blue"
-                : theme === "navyGrey"
-                ? "bg-secondary-navyGrey"
-                : theme === "amyGreen"
-                ? "bg-secondary-amyGreen"
-                : theme === "gold"
-                ? "bg-secondary-gold"
-                : theme === "orange"
-                ? "bg-secondary-orange"
-                : ""
-            }`}
+            className="h-11 w-1 rounded-full"
+            style={{ backgroundColor: getThemeHex(theme ?? "") }}
           ></div>
 
           <div className="flex flex-col gap-1">
@@ -259,7 +193,7 @@ function BudgetsItem({ item }: Item) {
             <p className="text-sm font-bold tabular-nums">
               {formatCurrency(typeof total !== "undefined" ? total : 0).replace(
                 "-",
-                ""
+                "",
               )}
             </p>
           </div>
@@ -269,7 +203,9 @@ function BudgetsItem({ item }: Item) {
           <div className="h-11 w-1 rounded-full bg-beige-100"></div>
           <div className="flex flex-col gap-1">
             <p className="text-grey-500 text-xs">Remaining</p>
-            <p className="text-sm font-bold tabular-nums">{formatCurrency(+rem)}</p>
+            <p className="text-sm font-bold tabular-nums">
+              {formatCurrency(+rem)}
+            </p>
           </div>
         </div>
       </div>
@@ -353,7 +289,9 @@ export function BudgetsSummaryItems({ transactions }: transac) {
             )}
           </div>
         </div>
-        <h1 className="text-grey-900 text-xl font-bold tracking-tight">Spending Summary</h1>
+        <h1 className="text-grey-900 text-xl font-bold tracking-tight">
+          Spending Summary
+        </h1>
         <div className="flex flex-col divide-y divide-beige-100">
           {transactions.map((budget, i) => (
             <BudgetsColors item={budget} key={i} />
@@ -380,39 +318,8 @@ function BudgetsColors({ item }: Item) {
   return (
     <div className="grid grid-cols-[16px,1fr] items-center gap-2 w-full py-3">
       <div
-        className={`h-6 w-1 rounded-full ${
-          theme === "green"
-            ? "bg-secondary-green"
-            : theme === "yellow"
-            ? "bg-secondary-yellow"
-            : theme === "cyan"
-            ? "bg-secondary-cyan"
-            : theme === "navy"
-            ? "bg-secondary-navy"
-            : theme === "red"
-            ? "bg-secondary-red"
-            : theme === "purple"
-            ? "bg-secondary-purple"
-            : theme === "lightPurple"
-            ? "bg-secondary-lightPurple"
-            : theme === "turquoise"
-            ? "bg-secondary-turquoise"
-            : theme === "brown"
-            ? "bg-secondary-brown"
-            : theme === "magenta"
-            ? "bg-secondary-magenta"
-            : theme === "blue"
-            ? "bg-secondary-blue"
-            : theme === "navyGrey"
-            ? "bg-secondary-navyGrey"
-            : theme === "amyGreen"
-            ? "bg-secondary-amyGreen"
-            : theme === "gold"
-            ? "bg-secondary-gold"
-            : theme === "orange"
-            ? "bg-secondary-orange"
-            : ""
-        }`}
+        className="h-6 w-1 rounded-full"
+        style={{ backgroundColor: getThemeHex(theme ?? "") }}
       ></div>
       <div className="flex justify-between items-center gap-4">
         <p className="text-sm text-grey-500">{category}</p>
@@ -420,7 +327,7 @@ function BudgetsColors({ item }: Item) {
           <h2 className="font-bold tabular-nums">
             {formatCurrency(typeof total !== "undefined" ? total : 0).replace(
               "-",
-              ""
+              "",
             )}
           </h2>
           <p className="text-grey-500 font-light text-sm">

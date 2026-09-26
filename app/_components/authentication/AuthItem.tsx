@@ -5,16 +5,9 @@ import { Input } from "../budgets/BudgtForm";
 import Button from "../ui/Button";
 import Link from "next/link";
 import { useState } from "react";
-import {
-  signInAction,
-  signup,
-  updateUser,
-  // uploadImage,
-} from "@/app/_lib/actions";
+import { signInAction, signup, updateUser } from "@/app/_lib/actions";
 import SpinnerMini from "../ui/SpinnerMini";
-// import { uploadImage } from "@/app/_lib/upload";
 import { uploadImage } from "@/app/_lib/dats-services";
-import { usePathname } from "next/navigation";
 
 type FormValues = {
   name?: string;
@@ -41,9 +34,9 @@ type pageName = {
 function AuthItem({ pageName, type, userData }: pageName) {
   const { register, handleSubmit, formState, setValue } = useForm<FormValues>();
   const { errors } = formState;
-  const pathname = usePathname();
   const [loading, setLoading] = useState(false);
   const [failError, setFailError] = useState("");
+  const [saved, setSaved] = useState(false);
   async function onSubmit(data: FormValues) {
     const dataAv = {
       name: data.name,
@@ -53,41 +46,35 @@ function AuthItem({ pageName, type, userData }: pageName) {
       avatar: "",
     };
     setLoading(true);
+    setFailError("");
+    setSaved(false);
 
     try {
+      // signup and signInAction redirect on success, so they only return
+      // when something went wrong.
       if (pageName === "signup") {
-        await signup(dataAv);
+        const res = await signup(dataAv);
+        if (!res.ok) setFailError(res.error);
       } else if (pageName === "login") {
-        await signInAction(data);
+        const res = await signInAction(data);
+        if (!res.ok) setFailError(res.error);
       } else if (type === "edit") {
-        const editData = {
-          ...userData,
-          name: data.name,
-          avatar: data.avatar,
-        };
+        let avatarUrl = userData?.avatar || "";
 
-        let avatarUrl = userData?.avatar || ""; // Default to existing avatar URL
-
-        // Check if `data.avatar` is a `FileList`
+        // `data.avatar` is a FileList when a new image was chosen.
         if (data.avatar && typeof data.avatar !== "string" && data.avatar[0]) {
           avatarUrl = await uploadImage(data.avatar[0]);
         }
 
-        const dataObj = {
-          ...editData,
-          avatar: avatarUrl,
-        };
-
-        // console.log(dataObj.avatar);
-        await updateUser(dataObj);
+        const res = await updateUser({ name: data.name, avatar: avatarUrl });
+        if (res.ok) setSaved(true);
+        else setFailError(res.error);
       }
     } catch (error: any) {
+      // Redirects are thrown as special errors; let Next.js handle them.
+      if (error?.digest?.startsWith?.("NEXT_REDIRECT")) throw error;
       console.error(error?.message);
-      pageName === "login"
-        ? setFailError("Invalid credentials")
-        : pathname === "signup"
-          ? setFailError("User Already exists")
-          : setFailError(error.message);
+      setFailError("Something went wrong. Try again.");
     } finally {
       setLoading(false);
     }
@@ -225,6 +212,11 @@ function AuthItem({ pageName, type, userData }: pageName) {
         </label>
       ) : null}
 
+      {saved && (
+        <p className="text-sm text-center text-secondary-green bg-secondary-green/10 rounded-xl py-3 px-4">
+          Profile updated.
+        </p>
+      )}
       {failError && (
         <p className="text-sm text-center text-secondary-red bg-secondary-red/10 rounded-xl py-3 px-4">
           {failError}

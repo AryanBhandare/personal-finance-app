@@ -1,4 +1,4 @@
-import { getTransaction, getTransactions } from "@/app/_lib/actions";
+import { getTransaction } from "@/app/_lib/actions";
 import PotsItem from "./PotsItem";
 import Empty from "../ui/Empty";
 

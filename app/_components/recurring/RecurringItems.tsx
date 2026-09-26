@@ -195,7 +195,9 @@ function RecItemsItem({ item }: RecItem) {
           />
         </span>
         <div className="flex flex-col gap-1 min-w-0">
-          <p className="text-grey-900 text-sm font-bold truncate">{item.name}</p>
+          <p className="text-grey-900 text-sm font-bold truncate">
+            {item.name}
+          </p>
         </div>
       </div>
 

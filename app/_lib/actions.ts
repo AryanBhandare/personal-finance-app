@@ -1,712 +1,467 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { generateUniqueId, getData } from "./dats-services";
-import { supabase } from "./supabase";
-import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { transactionsProp } from "../_components/overview/Transactions";
-
-export async function createDummyData(owners_id: string) {
-  const dataRaw = getData();
-  const sendAbleData = {
-    owners_id: owners_id,
-    transactions: dataRaw?.transactions,
-    budgets: dataRaw?.budgets,
-    balance: dataRaw?.balance,
-    pots: dataRaw?.pots,
-  };
-  const { data, error } = await supabase
-    .from("accountsTrx")
-    .insert([sendAbleData])
-    .select();
-
-  if (error) {
-    console.error("Error inserting data:", error);
-  }
-
-  return data;
-}
-
-export async function createEmptyData(owners_id: string) {
-  const sendAbleData = {
-    owners_id: owners_id,
-    transactions: [],
-    budgets: [],
-    balance: { income: 10000, current: 10000, expenses: 0 },
-    pots: [],
-  };
-  const { data, error } = await supabase
-    .from("accountsTrx")
-    .insert([sendAbleData])
-    .select();
-
-  if (error) {
-    console.error("Error inserting data:", error);
-  }
-
-  return data;
-}
-
-type mainTrx = {
-  transactions: transactionsProp[];
-};
-
-export async function getTransactions() {
-  const { data: transactions, error } = await supabase
-    .from("accountsTrx")
-    .select("*");
-
-  if (error) {
-    console.error("Error fetching transactions:", error);
-    throw new Error("Error fetching transactions");
-  }
-
-  return transactions;
-}
-
-export async function getTransaction() {
-  const user = cookies().get("user");
-  const userId = user?.value.replace(/"/g, ""); // Remove extra quotes
-
-  if (!user) {
-    throw new Error("User not authenticated");
-  }
-  const { data: transactions, error } = await supabase
-    .from("accountsTrx")
-    .select("*")
-    .eq("owners_id", userId)
-    .single();
-
-  if (error) {
-    console.error("Error fetching transactions:", error);
-    // throw new Error("Error fetching transactions");
-  }
-
-  return transactions;
-}
-
-type transactionType = {
-  name: string;
-  id: string;
-  amount: number;
-  date: string;
-  category: string;
-  avatar: string;
-  recurring?: boolean;
-};
-
-export async function createTrx(id: string, newTrx: transactionType) {
-  // Fetch the current senders trx
-  const user = await getUser();
-
-  // if (id === user.user_id) {
-  //   throw new Error("You cant money to yourself");
-  //   return;
-  // }
-  const { data: accountsTrx, error: fetchError } = await supabase
-    .from("accountsTrx")
-    .select("transactions, balance")
-    .eq("owners_id", user.user_id)
-    .single();
-
-  if (fetchError) {
-    console.error("Error fetching tasks:", fetchError);
-    return;
-  }
-
-  // receiver
-  const { data: RecTrx, error: RecError } = await supabase
-    .from("accountsTrx")
-    .select("transactions, balance")
-    .eq("owners_id", id)
-    .single();
-
-  if (RecError) {
-    console.error("Error fetching tasks:", fetchError);
-    return;
-  }
-
-  // Append the new task to the tasks array
-
-  const trxData = {
-    ...newTrx,
-    name: user.name,
-    avatar: user.avatar,
-  };
-  const updatedTrx = [...RecTrx.transactions, trxData];
-
-  // Update the tasks array for receiver in the board
-  const { data, error } = await supabase
-    .from("accountsTrx")
-    .update({ transactions: updatedTrx })
-    .eq("owners_id", id);
-
-  // update receiver balance
-  const updatedBalance: BalanceType = {
-    ...RecTrx.balance,
-    current: RecTrx.balance.current + newTrx.amount,
-    income: RecTrx.balance.income + newTrx.amount, // Add the amount to income
-  };
-
-  const { data: inc, error: incErr } = await supabase
-    .from("accountsTrx")
-    .update({ balance: updatedBalance })
-    .eq("owners_id", id);
-
-  //  sender
-  const sedTrx = {
-    ...trxData,
-    amount: -newTrx.amount,
-    name: newTrx.name,
-    avatar: newTrx.avatar,
-  };
-
-  const updateSenderTrx = [...accountsTrx.transactions, sedTrx];
-  // update sender tasks array
-  const { data: snd, error: sendErr } = await supabase
-    .from("accountsTrx")
-    .update({ transactions: updateSenderTrx })
-    .eq("owners_id", user.user_id);
-
-  const updateBalance: BalanceType = {
-    ...accountsTrx.balance,
-    current: accountsTrx.balance.current - newTrx.amount,
-    expenses: accountsTrx.balance.expenses + newTrx.amount, // Add the amount to income
-  };
-
-  const { data: incD, error: incErrD } = await supabase
-    .from("accountsTrx")
-    .update({ balance: updateBalance })
-    .eq("owners_id", user.user_id);
-
-  if (error) {
-    console.error("Error adding transaction:", error);
-  } else {
-    console.log("Transaction added successfully:", data);
-  }
-  revalidatePath(`/`);
-  return data;
-}
-
-type budType = {
-  id: string;
-  total?: number;
-};
-
-type stBud = {
-  id: string;
-};
-
-export async function editBudget(budId: string | undefined, newTask: object) {
-  const user = cookies().get("user");
-  const userId = user?.value.replace(/"/g, ""); // Remove extra quotes
-  // Fetch the current budgets
-  const { data: accountsTrx, error: fetchError } = await supabase
-    .from("accountsTrx") // Ensure you're fetching from the correct table
-    .select("budgets")
-    .eq("owners_id", userId)
-    .single(); // Fetch a single record by id
-
-  if (fetchError) {
-    console.error("Error fetching budgets:", fetchError);
-    return;
-  }
-
-  // Find the index of the budget to edit
-  const budgetIndex = accountsTrx.budgets.findIndex(
-    (budg: budType) => budg.id === budId
-  );
-
-  if (budgetIndex === -1) {
-    console.error("Budget not found");
-    return;
-  }
-
-  // Update the specific budget in the array
-  const updatedBudgets = accountsTrx.budgets.map(
-    (budget: budType, index: number) =>
-      index === budgetIndex ? { ...budget, ...newTask } : budget
-  );
-
-  // Update the budgets array in the accountsTrx table
-  const { data, error } = await supabase
-    .from("accountsTrx") // Update the correct table
-    .update({ budgets: updatedBudgets }) // Update the budgets field
-    .eq("owners_id", userId); // Ensure the correct record is updated
-
-  if (error) {
-    console.error("Error updating budget:", error);
-  }
-
-  // Revalidate the page if using a static site generation approach
-  revalidatePath(`/budgets`);
-
-  return data;
-}
-
-export async function createBudget(newTrx: object) {
-  // Fetch the current tasks
-  const user = cookies().get("user");
-  const userId = user?.value.replace(/"/g, "");
-
-  const { data: accountsTrx, error: fetchError } = await supabase
-    .from("accountsTrx")
-    .select("budgets")
-    .eq("owners_id", userId)
-    .single();
-
-  if (fetchError) {
-    console.error("Error fetching tasks:", fetchError);
-    return;
-  }
-
-  // Append the new task to the tasks array
-  const updatedTrx = [...accountsTrx.budgets, newTrx];
-
-  // Update the tasks array in the board
-  const { data, error } = await supabase
-    .from("accountsTrx")
-    .update({ budgets: updatedTrx })
-    .eq("owners_id", userId);
-
-  if (error) {
-    console.error("Error adding transaction:", error);
-  } else {
-    console.log("Budgets added successfully:");
-  }
-  revalidatePath(`/budgets`);
-  return data;
-}
-
-export async function deleteBudget(budId: string | undefined) {
-  const user = cookies().get("user");
-  const userId = user?.value.replace(/"/g, "");
-  // Fetch the current budgets
-  const { data: accountsTrx, error: fetchError } = await supabase
-    .from("accountsTrx") // Ensure fetching from the correct table
-    .select("budgets")
-    .eq("ownes_id", userId)
-    .single(); // Fetch a single record by id
-
-  if (fetchError) {
-    console.error("Error fetching budgets:", fetchError);
-    return;
-  }
-
-  // Find the index of the budget to delete
-  const budgetIndex = accountsTrx.budgets.findIndex(
-    (budg: budType) => budg.id === budId
-  );
-
-  if (budgetIndex === -1) {
-    console.error("Budget not found");
-    return;
-  }
-
-  // Remove the specific budget from the array
-  const updatedBudgets = accountsTrx.budgets.filter(
-    (budget: budType) => budget.id !== budId
-  );
-
-  // Update the budgets array in the accountsTrx table
-  const { data, error } = await supabase
-    .from("accountsTrx") // Update the correct table
-    .update({ budgets: updatedBudgets }) // Update with the filtered budgets array
-    .eq("ownes_id", userId); // Ensure the correct record is updated
-
-  if (error) {
-    console.error("Error deleting budget:", error);
-  } else {
-    console.log("Budget deleted successfully:");
-  }
-
-  // Revalidate the page if using a static site generation approach
-  revalidatePath(`/budgets`);
-
-  return data;
-}
-
-// POTS
-export async function createPots(potsData: object) {
-  const user = cookies().get("user");
-  const userId = user?.value.replace(/"/g, "");
-  const { data: accountsTrx, error: fetchError } = await supabase
-    .from("accountsTrx") // Ensure fetching from the correct table
-    .select("pots")
-    .eq("owners_id", userId)
-    .single(); // Fetch a single record by id
-
-  if (fetchError) {
-    console.error("Error fetching pots:", fetchError);
-    return;
-  }
-
-  // Append the new task to the tasks array
-  const updatedTrx = [...accountsTrx.pots, potsData];
-
-  // Update the tasks array in the board
-  const { data, error } = await supabase
-    .from("accountsTrx")
-    .update({ pots: updatedTrx })
-    .eq("owners_id", userId);
-
-  if (error) {
-    console.error("Error adding transaction:", error);
-  }
-  revalidatePath(`/pots`);
-  return data;
-}
-
-export async function editPot(potId: string | undefined, newPot: object) {
-  const user = cookies().get("user");
-  const userId = user?.value.replace(/"/g, "");
-  const { data: accountsTrx, error: fetchError } = await supabase
-    .from("accountsTrx") // Ensure fetching from the correct table
-    .select("pots")
-    .eq("owners_id", userId)
-    .single(); // Fetch a single record by id
-
-  if (fetchError) {
-    console.error("Error fetching budgets:", fetchError);
-    return;
-  }
-
-  // Find the index of the budget to edit
-  const budgetIndex = accountsTrx.pots.findIndex(
-    (budg: budType) => budg.id === potId
-  );
-
-  if (budgetIndex === -1) {
-    console.error("Pot not found");
-    return;
-  }
-
-  // Update the specific budget in the array
-  const updatedBudgets = accountsTrx.pots.map((pot: budType, index: number) =>
-    index === budgetIndex ? { ...pot, ...newPot } : pot
-  );
-
-  // Update the budgets array in the accountsTrx table
-  const { data, error } = await supabase
-    .from("accountsTrx") // Update the correct table
-    .update({ pots: updatedBudgets }) // Update the budgets field
-    .eq("owners_id", userId); // Ensure the correct record is updated
-
-  if (error) {
-    console.error("Error updating budget:", error);
-  }
-
-  // Revalidate the page if using a static site generation approach
-  revalidatePath(`/pots`);
-
-  return data;
-}
-export async function deletePots(potId: string) {
-  const user = cookies().get("user");
-  const userId = user?.value.replace(/"/g, "");
-  const { data: accountsTrx, error: fetchError } = await supabase
-    .from("accountsTrx") // Ensure fetching from the correct table
-    .select("pots")
-    .eq("owners_id", userId)
-    .single(); // Fetch a single record by id
-
-  if (fetchError) {
-    console.error("Error fetching budgets:", fetchError);
-    return;
-  }
-
-  // Find the index of the budget to edit
-  const budgetIndex = accountsTrx.pots.findIndex(
-    (budg: budType) => budg.id === potId
-  );
-
-  if (budgetIndex === -1) {
-    console.error("Pot not found");
-    return;
-  }
-
-  // Remove the specific budget from the array
-  const updatedBudgets = accountsTrx.pots.filter(
-    (budget: budType) => budget.id !== potId
-  );
-
-  // Update the budgets array in the accountsTrx table
-  const { data, error } = await supabase
-    .from("accountsTrx") // Update the correct table
-    .update({ pots: updatedBudgets }) // Update with the filtered budgets array
-    .eq("owners_id", userId); // Ensure the correct record is updated
-
-  if (error) {
-    console.error("Error deleting pots:", error);
-  }
-
-  // Revalidate the page if using a static site generation approach
-  revalidatePath(`/pots`);
-
-  return data;
-}
-
-type pottype = {
-  id: string;
-  total: number;
-};
+import { redirect } from "next/navigation";
+import { z } from "zod";
+import { generateUniqueId, getData } from "./dats-services";
+import { createClient, requireUserId } from "./supabase/server";
+
+export type ActionResult = { ok: true } | { ok: false; error: string };
 
 type BalanceType = {
   current: number;
   income: number;
   expenses: number;
 };
-// POTS
 
-export async function addMoneyToPot(potsId: string, amount: number) {
-  const user = cookies().get("user");
-  const userId = user?.value.replace(/"/g, "");
+type Pot = { id: string; name: string; target: number; total: number };
+type Budget = { id: string; category: string; maximum: number };
 
-  try {
-    const user = await getUser();
-    // 1. Fetch the user's account transaction
-    const { data: accountsTrx, error: fetchError } = await supabase
-      .from("accountsTrx")
-      .select("pots, balance, transactions")
-      .eq("owners_id", userId)
-      .single(); // Fetch a single record by id
+const THEMES = [
+  "green",
+  "yellow",
+  "cyan",
+  "navy",
+  "red",
+  "purple",
+  "lightPurple",
+  "turquoise",
+  "brown",
+  "magenta",
+  "blue",
+  "navyGrey",
+  "amyGreen",
+  "gold",
+  "orange",
+] as const;
 
-    if (fetchError || !accountsTrx) {
-      throw new Error("Error fetching account data or no data found");
-    }
+const money = z.coerce.number().finite().positive().max(10_000_000);
 
-    // 2. Find the specific pot to add money to
-    const budgetIndex = accountsTrx.pots.findIndex(
-      (pot: pottype) => pot.id === potsId
-    );
+const fail = (error: string): ActionResult => ({ ok: false, error });
 
-    if (budgetIndex === -1) {
-      throw new Error("Pot not found");
-    }
+// ---------------------------------------------------------------------------
+// Account setup
+// ---------------------------------------------------------------------------
 
-    // 3. Update the pot total and the account balance
-    const updatedPots = accountsTrx.pots.map((pot: pottype, index: number) =>
-      index === budgetIndex ? { ...pot, total: pot.total + amount } : pot
-    );
+// Creates the user's profile and finance rows on first sign-in. Profile
+// details come from the metadata stored at sign-up.
+async function ensureAccount(userId: string) {
+  const supabase = createClient();
 
-    const updatedBalance: BalanceType = {
-      ...accountsTrx.balance,
-      current: accountsTrx.balance.current - amount, // Deduct the amount from balance
-    };
+  const { data: profile } = await supabase
+    .from("owners")
+    .select("user_id, isDemo")
+    .eq("user_id", userId)
+    .maybeSingle();
 
-    // 4. Use a transaction to update both pots and balance
-    const { error: updateError } = await supabase
-      .from("accountsTrx")
-      .update({
-        pots: updatedPots,
-        balance: updatedBalance,
-      })
-      .eq("owners_id", userId);
+  let isDemo = profile?.isDemo ?? false;
 
-    if (updateError) {
-      throw new Error("Error updating pots or balance: " + updateError.message);
-    }
+  if (!profile) {
+    const { data: auth } = await supabase.auth.getUser();
+    const meta = auth.user?.user_metadata ?? {};
+    isDemo = Boolean(meta.isDemo);
 
-    //5. register activity as a transaction
-
-    const trx = {
-      id: generateUniqueId(10),
-      date: new Date().toISOString(),
-      name: user.name,
-      amount: -amount,
-      avatar: user.avatar,
-      category: "General",
-      recurring: false,
-    };
-
-    const updatedTx = [...accountsTrx.transactions, trx];
-
-    const { error: trxErr } = await supabase
-      .from("accountsTrx")
-      .update({
-        transactions: updatedTx,
-        // balance: updatedBalance,
-      })
-      .eq("owners_id", userId);
-
-    console.log("Successfully updated pot and balance.");
-  } catch (error) {
-    console.error(error || "An unknown error occurred");
+    const { error } = await supabase.from("owners").insert([
+      {
+        user_id: userId,
+        email: auth.user?.email,
+        name: meta.name ?? auth.user?.email?.split("@")[0] ?? "",
+        avatar: meta.avatar ?? "",
+        isDemo,
+      },
+    ]);
+    if (error) console.error("Error creating profile:", error.message);
   }
 
-  revalidatePath("/pots");
-  revalidatePath("/");
+  const { data: account } = await supabase
+    .from("accountsTrx")
+    .select("owners_id")
+    .eq("owners_id", userId)
+    .maybeSingle();
+
+  if (!account) {
+    const demo = getData();
+    const { error } = await supabase.from("accountsTrx").insert([
+      isDemo && demo
+        ? {
+            owners_id: userId,
+            transactions: demo.transactions,
+            budgets: demo.budgets,
+            balance: demo.balance,
+            pots: demo.pots,
+          }
+        : {
+            owners_id: userId,
+            transactions: [],
+            budgets: [],
+            balance: { income: 10000, current: 10000, expenses: 0 },
+            pots: [],
+          },
+    ]);
+    if (error) console.error("Error creating account:", error.message);
+  }
 }
 
-export async function withdrawFromPot(potsId: string, amount: number) {
-  const user = cookies().get("user");
-  const userId = user?.value.replace(/"/g, "");
+// ---------------------------------------------------------------------------
+// Reads
+// ---------------------------------------------------------------------------
 
-  try {
-    const user = await getUser();
-    // 1. Fetch the user's account transaction
-    const { data: accountsTrx, error: fetchError } = await supabase
+export async function getTransaction() {
+  const userId = await requireUserId();
+  const supabase = createClient();
+
+  const select = () =>
+    supabase
       .from("accountsTrx")
-      .select("pots, balance, transactions")
+      .select("*")
       .eq("owners_id", userId)
-      .single(); // Fetch a single record by id
+      .maybeSingle();
 
-    if (fetchError || !accountsTrx) {
-      throw new Error("Error fetching account data or no data found");
-    }
+  let { data, error } = await select();
+  if (!data && !error) {
+    await ensureAccount(userId);
+    ({ data, error } = await select());
+  }
 
-    // 2. Find the specific pot to withdraw money from
-    const budgetIndex = accountsTrx.pots.findIndex(
-      (pot: pottype) => pot.id === potsId
-    );
+  if (error) console.error("Error fetching account:", error.message);
+  return data;
+}
 
-    if (budgetIndex === -1) {
-      throw new Error("Pot not found");
-    }
+export async function getUser() {
+  const userId = await requireUserId();
+  const supabase = createClient();
 
-    const selectedPot = accountsTrx.pots[budgetIndex];
+  const select = () =>
+    supabase.from("owners").select("*").eq("user_id", userId).maybeSingle();
 
-    // 3. Check if the pot has enough balance for the withdrawal
-    if (selectedPot.total < amount) {
-      throw new Error(
-        `Insufficient funds in pot. Available: ${selectedPot.total}`
+  let { data } = await select();
+  if (!data) {
+    await ensureAccount(userId);
+    ({ data } = await select());
+  }
+
+  return data;
+}
+
+// Only a receiver's public details, via a database function (see
+// supabase/migrations), since row-level security hides other users' rows.
+export async function getReceiver(id: string) {
+  await requireUserId();
+  const { data, error } = await createClient().rpc("get_receiver", {
+    receiver_id: id.trim(),
+  });
+
+  if (error) {
+    console.error("Error looking up receiver:", error.message);
+    return null;
+  }
+  return data?.[0] ?? null;
+}
+
+// ---------------------------------------------------------------------------
+// Transfers
+// ---------------------------------------------------------------------------
+
+export async function createTrx(
+  receiverId: string,
+  amount: number,
+  category: string,
+): Promise<ActionResult> {
+  await requireUserId();
+
+  const parsed = z
+    .object({
+      receiverId: z.string().trim().min(1),
+      amount: money,
+      category: z.string().trim().min(1).max(40),
+    })
+    .safeParse({ receiverId, amount, category });
+  if (!parsed.success) return fail("Check the account ID and amount.");
+
+  // Validation, balance checks and both account updates happen atomically
+  // inside the database function.
+  const { error } = await createClient().rpc("transfer_money", {
+    receiver_id: parsed.data.receiverId,
+    amount: parsed.data.amount,
+    category: parsed.data.category,
+  });
+
+  if (error) {
+    console.error("Transfer failed:", error.message);
+    if (error.code === "PGRST202") {
+      return fail(
+        "Transfers aren't set up yet. Run the SQL in supabase/migrations first.",
       );
     }
-
-    // 4. Update the pot total and the account balance
-    const updatedPots = accountsTrx.pots.map((pot: pottype, index: number) =>
-      index === budgetIndex ? { ...pot, total: pot.total - amount } : pot
-    );
-
-    const updatedBalance: BalanceType = {
-      ...accountsTrx.balance,
-      current: accountsTrx.balance.current + amount, // Add the amount back to the balance
-    };
-
-    // 5. Use a transaction-like behavior to update both pots and balance
-    const { error: updateError } = await supabase
-      .from("accountsTrx")
-      .update({
-        pots: updatedPots,
-        balance: updatedBalance,
-      })
-      .eq("owners_id", userId);
-
-    if (updateError) {
-      throw new Error("Error updating pots or balance: " + updateError.message);
-    }
-
-    //6. register activity as a transaction
-
-    const trx = {
-      id: generateUniqueId(10),
-      date: new Date().toISOString(),
-      name: user.name,
-      amount: amount,
-      avatar: user.avatar,
-      category: "General",
-      recurring: false,
-    };
-
-    const updatedTx = [...accountsTrx.transactions, trx];
-
-    const { error: trxErr } = await supabase
-      .from("accountsTrx")
-      .update({
-        transactions: updatedTx,
-        // balance: updatedBalance,
-      })
-      .eq("owners_id", userId);
-
-    console.log("Successfully withdrew from pot and updated balance.");
-  } catch (error) {
-    console.error(error || "An unknown error occurred");
+    return fail(error.message || "Transfer failed. Try again.");
   }
 
-  revalidatePath("/");
-  revalidatePath("/pots");
+  revalidatePath("/", "layout");
+  return { ok: true };
 }
 
-type FormValues = {
+// ---------------------------------------------------------------------------
+// Budgets
+// ---------------------------------------------------------------------------
+
+async function getOwnAccount<T extends string>(columns: T) {
+  const userId = await requireUserId();
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("accountsTrx")
+    .select(columns)
+    .eq("owners_id", userId)
+    .single();
+  return { userId, supabase, data: data as Record<string, any> | null, error };
+}
+
+async function updateOwnAccount(fields: Record<string, unknown>) {
+  const userId = await requireUserId();
+  return createClient()
+    .from("accountsTrx")
+    .update(fields)
+    .eq("owners_id", userId);
+}
+
+const newBudgetSchema = z.object({
+  category: z.string().trim().min(1).max(40),
+  maximum: money,
+  theme: z.enum(THEMES),
+});
+
+export async function createBudget(input: unknown): Promise<ActionResult> {
+  const parsed = newBudgetSchema.safeParse(input);
+  if (!parsed.success) return fail("Choose a category, amount and theme.");
+
+  const { data, error } = await getOwnAccount("budgets");
+  if (error || !data) return fail("Couldn't load your budgets.");
+
+  const budgets: Budget[] = data.budgets ?? [];
+  if (budgets.some((b) => b.category === parsed.data.category)) {
+    return fail("You already have a budget for this category.");
+  }
+
+  const { error: updateError } = await updateOwnAccount({
+    budgets: [...budgets, { ...parsed.data, id: generateUniqueId(8) }],
+  });
+  if (updateError) return fail("Couldn't save the budget.");
+
+  revalidatePath("/budgets");
+  revalidatePath("/");
+  return { ok: true };
+}
+
+export async function editBudget(
+  budId: string | undefined,
+  input: unknown,
+): Promise<ActionResult> {
+  const parsed = z.object({ maximum: money }).safeParse(input);
+  if (!budId || !parsed.success) return fail("Enter a valid amount.");
+
+  const { data, error } = await getOwnAccount("budgets");
+  if (error || !data) return fail("Couldn't load your budgets.");
+
+  const budgets: Budget[] = data.budgets ?? [];
+  if (!budgets.some((b) => b.id === budId)) return fail("Budget not found.");
+
+  const { error: updateError } = await updateOwnAccount({
+    budgets: budgets.map((b) =>
+      b.id === budId ? { ...b, maximum: parsed.data.maximum } : b,
+    ),
+  });
+  if (updateError) return fail("Couldn't update the budget.");
+
+  revalidatePath("/budgets");
+  revalidatePath("/");
+  return { ok: true };
+}
+
+export async function deleteBudget(
+  budId: string | undefined,
+): Promise<ActionResult> {
+  const { data, error } = await getOwnAccount("budgets");
+  if (error || !data) return fail("Couldn't load your budgets.");
+
+  const budgets: Budget[] = data.budgets ?? [];
+  if (!budgets.some((b) => b.id === budId)) return fail("Budget not found.");
+
+  const { error: updateError } = await updateOwnAccount({
+    budgets: budgets.filter((b) => b.id !== budId),
+  });
+  if (updateError) return fail("Couldn't delete the budget.");
+
+  revalidatePath("/budgets");
+  revalidatePath("/");
+  return { ok: true };
+}
+
+// ---------------------------------------------------------------------------
+// Pots
+// ---------------------------------------------------------------------------
+
+const potSchema = z.object({
+  name: z.string().trim().min(1).max(30),
+  target: money,
+  theme: z.enum(THEMES),
+});
+
+export async function createPots(input: unknown): Promise<ActionResult> {
+  const parsed = potSchema.safeParse(input);
+  if (!parsed.success) return fail("Enter a name, target and theme.");
+
+  const { data, error } = await getOwnAccount("pots");
+  if (error || !data) return fail("Couldn't load your pots.");
+
+  const { error: updateError } = await updateOwnAccount({
+    pots: [
+      ...(data.pots ?? []),
+      { ...parsed.data, id: generateUniqueId(9), total: 0 },
+    ],
+  });
+  if (updateError) return fail("Couldn't create the pot.");
+
+  revalidatePath("/pots");
+  revalidatePath("/");
+  return { ok: true };
+}
+
+export async function editPot(
+  potId: string | undefined,
+  input: unknown,
+): Promise<ActionResult> {
+  const parsed = potSchema.safeParse(input);
+  if (!potId || !parsed.success) return fail("Enter a name, target and theme.");
+
+  const { data, error } = await getOwnAccount("pots");
+  if (error || !data) return fail("Couldn't load your pots.");
+
+  const pots: Pot[] = data.pots ?? [];
+  if (!pots.some((p) => p.id === potId)) return fail("Pot not found.");
+
+  const { error: updateError } = await updateOwnAccount({
+    pots: pots.map((p) => (p.id === potId ? { ...p, ...parsed.data } : p)),
+  });
+  if (updateError) return fail("Couldn't update the pot.");
+
+  revalidatePath("/pots");
+  revalidatePath("/");
+  return { ok: true };
+}
+
+export async function deletePots(potId: string): Promise<ActionResult> {
+  const { data, error } = await getOwnAccount("pots");
+  if (error || !data) return fail("Couldn't load your pots.");
+
+  const pots: Pot[] = data.pots ?? [];
+  const pot = pots.find((p) => p.id === potId);
+  if (!pot) return fail("Pot not found.");
+  if (pot.total > 0) return fail("Withdraw the savings before deleting.");
+
+  const { error: updateError } = await updateOwnAccount({
+    pots: pots.filter((p) => p.id !== potId),
+  });
+  if (updateError) return fail("Couldn't delete the pot.");
+
+  revalidatePath("/pots");
+  revalidatePath("/");
+  return { ok: true };
+}
+
+// Moves money between the main balance and a pot. Positive `delta` adds to
+// the pot, negative withdraws. Pots, balance and the activity entry are
+// written in a single update.
+async function movePotMoney(
+  potId: string,
+  delta: number,
+): Promise<ActionResult> {
+  const { data, error } = await getOwnAccount("pots, balance, transactions");
+  if (error || !data) return fail("Couldn't load your account.");
+
+  const pots: Pot[] = data.pots ?? [];
+  const balance: BalanceType = data.balance;
+  const pot = pots.find((p) => p.id === potId);
+  if (!pot) return fail("Pot not found.");
+
+  if (delta > 0 && balance.current < delta) {
+    return fail("Insufficient balance.");
+  }
+  if (delta > 0 && pot.total + delta > pot.target) {
+    return fail("That's more than the pot needs to reach its target.");
+  }
+  if (delta < 0 && pot.total < -delta) {
+    return fail("The pot doesn't have that much saved.");
+  }
+
+  const user = await getUser();
+  const { error: updateError } = await updateOwnAccount({
+    pots: pots.map((p) =>
+      p.id === potId ? { ...p, total: p.total + delta } : p,
+    ),
+    balance: { ...balance, current: balance.current - delta },
+    transactions: [
+      ...(data.transactions ?? []),
+      {
+        id: generateUniqueId(10),
+        date: new Date().toISOString(),
+        name: `${delta > 0 ? "Saved to" : "Withdrew from"} ${pot.name}`,
+        amount: -delta,
+        avatar: user?.avatar ?? "",
+        category: "General",
+        recurring: false,
+      },
+    ],
+  });
+  if (updateError) return fail("Couldn't update the pot.");
+
+  revalidatePath("/pots");
+  revalidatePath("/");
+  return { ok: true };
+}
+
+export async function addMoneyToPot(
+  potsId: string,
+  amount: number,
+): Promise<ActionResult> {
+  const parsed = money.safeParse(amount);
+  if (!parsed.success) return fail("Enter an amount greater than zero.");
+  return movePotMoney(potsId, parsed.data);
+}
+
+export async function withdrawFromPot(
+  potsId: string,
+  amount: number,
+): Promise<ActionResult> {
+  const parsed = money.safeParse(amount);
+  if (!parsed.success) return fail("Enter an amount greater than zero.");
+  return movePotMoney(potsId, -parsed.data);
+}
+
+// ---------------------------------------------------------------------------
+// Auth
+// ---------------------------------------------------------------------------
+
+type SignupData = {
   name?: string;
   email: string;
   password: string;
   isDemo?: boolean;
-  user_id?: string | undefined;
-  avatar: string;
+  avatar?: string;
 };
 
-export async function signup(formData: FormValues) {
-  const { email, password } = formData;
+export async function signup(formData: SignupData): Promise<ActionResult> {
+  const { email, password, name, isDemo, avatar } = formData;
 
-  // Sign up user via Supabase auth
-  const { data, error } = await supabase.auth.signUp({ email, password });
+  // Profile details are kept in the auth user's metadata and turned into a
+  // profile row on first sign-in, when row-level security allows the insert.
+  const { error } = await createClient().auth.signUp({
+    email,
+    password,
+    options: { data: { name, isDemo: Boolean(isDemo), avatar: avatar ?? "" } },
+  });
 
-  if (error) {
-    console.error(error.message);
-    throw new Error(error.message);
-  }
-
-  // Create user data for the owners table
-  const userData = {
-    avatar: formData.avatar,
-    name: formData.name,
-    email: formData.email,
-    isDemo: formData.isDemo,
-    user_id: data?.user?.id, // Supabase user ID
-  };
-
-  // Insert user data into the owners table
-  const { data: user, error: userError } = await supabase
-    .from("owners")
-    .insert([userData])
-    .select();
-
-  if (userError) {
-    console.error(userError.message);
-    throw new Error(userError.message);
-  }
-
-  // Redirect to login page after successful signup
+  if (error) return fail(error.message);
   redirect("/login");
-}
-
-export async function getUser() {
-  const user = cookies().get("user");
-  const userId = user?.value.replace(/"/g, "");
-  const { data, error } = await supabase
-    .from("owners")
-    .select("*")
-    .eq("user_id", userId)
-    .single();
-
-  // if (error) {
-  //   console.error(error);
-  //   throw new error(error, "Unable to get user");
-  // }
-
-  if (!data) {
-    cookies().delete("user");
-    redirect("/login");
-  }
-
-  return data;
-}
-
-export async function getReceiver(id: string) {
-  const { data, error } = await supabase
-    .from("owners")
-    .select("*")
-    .eq("user_id", id)
-    .single();
-
-  // if (error) {
-  //   console.error(error);
-  //   throw new error(error, "Unable to get user");
-  // }
-
-  return data;
 }
 
 type SignInFormData = {
@@ -714,113 +469,58 @@ type SignInFormData = {
   password: string;
 };
 
-export type ownerdata = {
-  owners_id: string;
-  transactions: [];
-  pots: [];
-  balance: {
-    current: number;
-    income: number;
-    expenses: number;
-  };
-  budgets: [];
-};
-
-export async function signInAction(formData: SignInFormData) {
-  const { email, password } = formData;
-
-  // try {
-  // 1. Sign in user using Supabase authentication
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
+export async function signInAction(
+  formData: SignInFormData,
+): Promise<ActionResult> {
+  const { data, error } = await createClient().auth.signInWithPassword({
+    email: formData.email,
+    password: formData.password,
   });
 
-  if (error) {
-    // 2. Handle errors during sign-in
-    cookies()?.delete("user"); // Clear cookies on error
-    console.error("Error signing in:", error.message);
-    throw new Error(error.message);
+  if (error || !data.user) {
+    return fail(
+      error?.code === "email_not_confirmed"
+        ? "Confirm your email address, then log in."
+        : "Invalid email or password.",
+    );
   }
 
-  // 3. Set a secure cookie with the user's ID
-  const oneDay = 24 * 60 * 60 * 1000; // One day in milliseconds
-  cookies().set("user", JSON.stringify(data?.user?.id), {
-    path: "/",
-    httpOnly: true, // Make the cookie inaccessible to client-side JavaScript
-    secure: process.env.NODE_ENV === "production", // Only send cookie over HTTPS in production
-    maxAge: oneDay, // Cookie will expire after one day
-  });
+  // Remove the insecure cookie used by earlier versions of the app.
+  cookies().delete("user");
 
-  // 4. Fetch the current user data
-  const curUser = await getUser();
-
-  // 5. fetch and check uf the user already has a row in the table
-
-  const allData = await getTransactions();
-
-  const isAlreadyExist = allData?.find(
-    (data: ownerdata) => data.owners_id === curUser.user_id
-  );
-
-  // 6. If the user is a demo user, generate dummy data
-  if (!isAlreadyExist && curUser.isDemo) {
-    await createDummyData(curUser?.user_id);
-  } else if (!isAlreadyExist && !curUser.isDemo) {
-    await createEmptyData(curUser?.user_id);
-  }
-
-  // 7. Return the authentication data
+  await ensureAccount(data.user.id);
   redirect("/");
-  return data;
-  // } catch (err) {
-  //   console.error("Sign-in failed:", err);
-  // }
 }
-
-type User = {
-  user_Id: string;
-  name: string;
-  email: string;
-  avatar?: string;
-  isDemo?: boolean;
-  // Add any other fields that exist in your "owners" table
-};
 
 type UserUpdate = {
   name?: string;
-  email?: string;
   avatar?: string;
-  // Other fields you might want to allow for updating
 };
 
-export async function updateUser(userObj: UserUpdate) {
-  const user = await getUser();
+export async function updateUser(userObj: UserUpdate): Promise<ActionResult> {
+  const userId = await requireUserId();
 
-  let userData;
-  if (user?.avatar && userObj?.avatar?.includes("undfined"))
-    userData = { ...userObj, avatar: user.avatar };
+  const parsed = z
+    .object({
+      name: z.string().trim().min(1).max(60).optional(),
+      avatar: z.string().max(500).optional(),
+    })
+    .safeParse(userObj);
+  if (!parsed.success) return fail("Check your name and avatar.");
 
-  if (!user?.avatar && userObj?.avatar?.includes("undfined"))
-    userData = { ...userObj, avatar: "" };
-  else userData = { ...userObj };
-  const { data, error } = await supabase
+  const { error } = await createClient()
     .from("owners")
-    .update(userData)
-    .eq("user_id", user.user_id)
-    .select();
+    .update(parsed.data)
+    .eq("user_id", userId);
 
-  if (error) {
-    console.error("Error updating user:", error.message);
-    throw new Error(error.message);
-  }
+  if (error) return fail("Couldn't update your profile.");
 
-  // Revalidate the path if necessary
-  revalidatePath("/settings");
-  revalidatePath("/");
+  revalidatePath("/", "layout");
+  return { ok: true };
 }
 
 export async function signOutAction() {
-  cookies()?.delete("user");
+  await createClient().auth.signOut();
+  cookies().delete("user");
   redirect("/login");
 }

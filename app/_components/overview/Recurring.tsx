@@ -77,10 +77,10 @@ export function RecurringId({ amount, status }: TrxType) {
         status === "Paid"
           ? "border-l-secondary-green"
           : status === "Upcoming"
-          ? "border-l-secondary-yellow"
-          : status === "Due soon"
-          ? "border-l-secondary-cyan  "
-          : ""
+            ? "border-l-secondary-yellow"
+            : status === "Due soon"
+              ? "border-l-secondary-cyan  "
+              : ""
       } bg-beige-100`}
     >
       <p className="capitalize text-sm text-grey-500">{status}</p>

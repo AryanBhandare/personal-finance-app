@@ -10,7 +10,6 @@ import Button from "../ui/Button";
 import {
   addMoneyToPot,
   getTransaction,
-  getTransactions,
   withdrawFromPot,
 } from "@/app/_lib/actions";
 import SpinnerMini from "../ui/SpinnerMini";
@@ -18,7 +17,7 @@ import SpinnerMini from "../ui/SpinnerMini";
 type formparam = {
   type: "add" | "withdraw";
   item: potsProp;
-  close: () =>void
+  close: () => void;
 };
 
 type FormValues = {
@@ -32,6 +31,7 @@ function WithdrawalAddForm({ type, item, close }: formparam) {
 
   const [balance, setBalance] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [formError, setFormError] = useState("");
   const amount = watch("amount", 0); // Watch the amount from the form
 
   // Calculate the remaining amount for add
@@ -50,14 +50,19 @@ function WithdrawalAddForm({ type, item, close }: formparam) {
 
   async function onSubmit(data: FormValues) {
     setLoading(true);
+    setFormError("");
     try {
-      if (type === "add") await addMoneyToPot(item.id, Number(data.amount));
-      else await withdrawFromPot(item.id, Number(data.amount));
+      const res =
+        type === "add"
+          ? await addMoneyToPot(item.id, Number(data.amount))
+          : await withdrawFromPot(item.id, Number(data.amount));
+      if (!res.ok) return setFormError(res.error);
+      close();
     } catch (error) {
       console.error(error);
+      setFormError("Something went wrong. Try again.");
     } finally {
       setLoading(false);
-      close(); // Close the form if successful
     }
   }
 
@@ -81,7 +86,7 @@ function WithdrawalAddForm({ type, item, close }: formparam) {
         style={{
           gridTemplateColumns: `${calculatePercentage(
             item.total,
-            item.target
+            item.target,
           ).toFixed(2)}% 1fr`,
         }}
       >
@@ -97,10 +102,10 @@ function WithdrawalAddForm({ type, item, close }: formparam) {
         <div
           style={{
             width: `${calculatePercentage(Number(amount), item.target).toFixed(
-              2
+              2,
             )}%`,
             maxWidth: `${calculatePercentage(maxValue, item.target).toFixed(
-              2
+              2,
             )}%`, // Set max width based on remaining target
           }}
           className={`${
@@ -147,6 +152,11 @@ function WithdrawalAddForm({ type, item, close }: formparam) {
             </span>
           ) : null}
         </Input>
+        {formError ? (
+          <p className="rounded-xl bg-secondary-red/10 px-4 py-3 text-sm text-secondary-red">
+            {formError}
+          </p>
+        ) : null}
         <Button
           className="flex items-center justify-center"
           onClick={handleSubmit(onSubmit)}

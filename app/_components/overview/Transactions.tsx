@@ -40,8 +40,8 @@ export function TransactionItem({ item }: Item) {
               item.avatar && item?.avatar?.startsWith(".")
                 ? item?.avatar?.replace(".", "")
                 : !item.avatar
-                ? defaultImg
-                : item?.avatar
+                  ? defaultImg
+                  : item?.avatar
             }
             alt="User Avatar"
             fill

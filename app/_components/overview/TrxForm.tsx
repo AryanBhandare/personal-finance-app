@@ -1,15 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Categories, Input } from "../budgets/BudgtForm"; // Assuming you already have this component
-import {
-  createTrx,
-  getReceiver,
-  getTransaction,
-  getUser,
-} from "@/app/_lib/actions";
+import { createTrx, getReceiver, getTransaction } from "@/app/_lib/actions";
 import Button from "../ui/Button";
 import Image from "next/image";
-import { generateUniqueId } from "@/app/_lib/dats-services";
 import SpinnerMini from "../ui/SpinnerMini";
 
 type FormValues = {
@@ -43,6 +37,7 @@ function TrxForm({ close }: trxForm) {
   const [receiverDetails, setReceiverDetails] = useState<any>(null); // Receiver details state
   const [loading, setLoading] = useState({ name: "", status: false });
   const [balance, setBalance] = useState(0);
+  const [formError, setFormError] = useState("");
 
   function handleOpenCat(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
@@ -98,31 +93,22 @@ function TrxForm({ close }: trxForm) {
   };
 
   async function onSubmit(data: FormValues) {
+    if (!receiverDetails) return;
     setLoading({ name: "trx", status: true });
-    const trx = {
-      id: generateUniqueId(10),
-      date: new Date().toISOString(),
-      name: receiverDetails?.name,
-      amount: Number(data.amount),
-      avatar: receiverDetails?.avatar,
-      category: catOpen.cat.category,
-      recurring: false,
-    };
-
+    setFormError("");
     try {
-      const curUser = await getUser();
-
-      if (receiverDetails.user_id === curUser.user_id) {
-        alert("You can't send money to yourself.");
-        close();
-        return;
-      }
-      await createTrx(receiverDetails.user_id, trx);
+      const res = await createTrx(
+        receiverDetails.user_id,
+        Number(data.amount),
+        catOpen.cat.category,
+      );
+      if (!res.ok) return setFormError(res.error);
+      close();
     } catch (error) {
       console.error(error);
+      setFormError("Something went wrong. Try again.");
     } finally {
       setLoading({ name: "", status: false });
-      close();
     }
   }
 
@@ -202,6 +188,12 @@ function TrxForm({ close }: trxForm) {
           </span>
         </button>
       </Input>
+
+      {formError ? (
+        <p className="rounded-xl bg-secondary-red/10 px-4 py-3 text-sm text-secondary-red">
+          {formError}
+        </p>
+      ) : null}
 
       <Button
         className="flex items-center justify-center"

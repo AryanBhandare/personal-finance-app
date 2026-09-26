@@ -1,6 +1,6 @@
 import User from "../overview/User";
 import Button from "./Button";
-import { createDummyData, signOutAction } from "@/app/_lib/actions";
+import { signOutAction } from "@/app/_lib/actions";
 import { MdLogout } from "react-icons/md";
 import { LuPlus, LuSend } from "react-icons/lu";
 
