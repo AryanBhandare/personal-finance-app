@@ -10,12 +10,12 @@ import {
   LuSparkles,
   LuTrendingUp,
 } from "react-icons/lu";
-import {
-  getInsights,
+import { getInsights } from "@/app/_lib/insights";
+import type {
   InsightsResult,
   InsightsSource,
   Recommendation,
-} from "@/app/_lib/insights";
+} from "@/app/_lib/insights-core";
 import { formatCurrency } from "@/app/_lib/dats-services";
 
 const categoryStyles: Record<
