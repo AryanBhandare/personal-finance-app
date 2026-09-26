@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { latestMonthTotals } from "./finance";
 
 // Pure insight logic: the response schema, the snapshot sent to AI
 // providers, and the rule-based fallback. Kept free of server-only imports
@@ -116,7 +117,8 @@ export function buildSnapshot(data: {
 
   return {
     today: new Date().toISOString().slice(0, 10),
-    balance: data.balance,
+    current_balance: data.balance?.current,
+    this_month: latestMonthTotals(transactions),
     budgets: budgets.map((b) => ({
       category: b.category,
       limit: b.maximum,
@@ -147,15 +149,15 @@ export function buildSnapshot(data: {
 
 export function ruleBasedInsights(snapshot: Snapshot): ParsedInsights {
   const recs: ParsedInsights["recommendations"] = [];
-  const { balance, budgets, pots, recurring_bills } = snapshot;
+  const { this_month: month, budgets, pots, recurring_bills } = snapshot;
 
-  if (balance && balance.expenses > balance.income) {
+  if (month.expenses > month.income) {
     recs.push({
       title: "You're spending more than you earn",
-      detail: `Expenses of $${round(balance.expenses)} are above income of $${round(balance.income)}. Look at your largest categories below for places to cut back.`,
+      detail: `In ${month.label} you spent $${month.expenses} and received $${month.income}. Look at your largest categories for places to cut back.`,
       category: "income",
       priority: "high",
-      estimated_monthly_savings: round(balance.expenses - balance.income),
+      estimated_monthly_savings: round(month.expenses - month.income),
     });
   }
 
@@ -233,8 +235,7 @@ export function ruleBasedInsights(snapshot: Snapshot): ParsedInsights {
     });
   }
 
-  const onTrack =
-    overBudget.length === 0 && balance && balance.expenses <= balance.income;
+  const onTrack = overBudget.length === 0 && month.expenses <= month.income;
   return {
     summary: onTrack
       ? "You're within your budgets overall. A few small tweaks could help you save more."

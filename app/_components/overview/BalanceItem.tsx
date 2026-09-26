@@ -6,6 +6,10 @@ type balanceItemType = {
   balance: number;
   title: string;
   image?: string;
+  /** Time period the figure covers, e.g. "Aug 2024". */
+  period?: string;
+  /** Small supporting line under the amount. */
+  caption?: string;
 };
 
 const cardStyles: Record<
@@ -37,7 +41,13 @@ const cardStyles: Record<
   },
 };
 
-function BalanceItem({ balance, title, image }: balanceItemType) {
+function BalanceItem({
+  balance,
+  title,
+  image,
+  period,
+  caption,
+}: balanceItemType) {
   const style = cardStyles[title] ?? cardStyles.Income;
   const isDark = style.dark;
 
@@ -86,6 +96,12 @@ function BalanceItem({ balance, title, image }: balanceItemType) {
         } text-sm font-medium`}
       >
         {title}
+        {period ? (
+          <span className={isDark ? "text-white/50" : "text-grey-300"}>
+            {" "}
+            · {period}
+          </span>
+        ) : null}
       </p>
 
       <h2
@@ -95,6 +111,15 @@ function BalanceItem({ balance, title, image }: balanceItemType) {
       >
         {formatCurrency(balance).replace("-", "")}
       </h2>
+      {caption ? (
+        <p
+          className={`relative text-xs font-medium tabular-nums ${
+            isDark ? "text-white/70" : "text-grey-500"
+          }`}
+        >
+          {caption}
+        </p>
+      ) : null}
     </div>
   );
 }

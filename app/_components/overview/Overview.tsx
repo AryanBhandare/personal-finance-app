@@ -1,4 +1,6 @@
 import { getTransaction } from "@/app/_lib/actions";
+import { formatCurrency } from "@/app/_lib/dats-services";
+import { latestMonthTotals } from "@/app/_lib/finance";
 import AIInsights from "./AIInsights";
 import BalanceItem from "./BalanceItem";
 import {
@@ -22,10 +24,17 @@ async function Overview() {
     (transaction: TrxType) => transaction.recurring === true,
   );
 
+  // Income and expenses come from the transactions themselves, for the
+  // latest month with activity, so they always match the transaction list.
+  const month = latestMonthTotals(transactions);
+  const net = `${month.net >= 0 ? "+" : "−"}${formatCurrency(
+    Math.abs(month.net),
+  )} net in ${month.label}`;
+
   const balanceDetails = [
-    { balance: data?.balance?.current, title: "Current Balance" },
-    { balance: data?.balance?.income, title: "Income" },
-    { balance: data?.balance?.expenses, title: "Expenses" },
+    { balance: data?.balance?.current, title: "Current Balance", caption: net },
+    { balance: month.income, title: "Income", period: month.label },
+    { balance: month.expenses, title: "Expenses", period: month.label },
   ];
 
   return (

@@ -67,6 +67,7 @@ describe("ruleBasedInsights", () => {
       buildSnapshot({
         balance: { current: 1000, income: 3000, expenses: 1000 },
         transactions: [
+          { name: "Salary", date: day(1), amount: 3000 },
           {
             name: "Cafe",
             category: "Dining Out",
@@ -85,11 +86,13 @@ describe("ruleBasedInsights", () => {
     });
   });
 
-  it("warns when spending exceeds income", () => {
+  it("warns when the latest month's spending exceeds income", () => {
     const result = ruleBasedInsights(
       buildSnapshot({
-        balance: { current: 0, income: 1000, expenses: 1500 },
-        transactions: [],
+        transactions: [
+          { name: "Salary", date: day(1), amount: 1000 },
+          { name: "Rent", category: "Bills", date: day(2), amount: -1500 },
+        ],
       }),
     );
 
@@ -98,12 +101,14 @@ describe("ruleBasedInsights", () => {
       priority: "high",
       estimated_monthly_savings: 500,
     });
+    expect(result.recommendations[0].detail).toContain("Aug 2024");
   });
 
   it("points out a budget that is nearly used up", () => {
     const result = ruleBasedInsights(
       buildSnapshot({
         transactions: [
+          { name: "Salary", date: day(1), amount: 3000 },
           {
             name: "Cinema",
             category: "Entertainment",
@@ -131,9 +136,11 @@ describe("ruleBasedInsights", () => {
   it("gives an encouraging summary when everything is on track", () => {
     const result = ruleBasedInsights(
       buildSnapshot({
-        balance: { current: 5000, income: 3000, expenses: 1000 },
-        transactions: [],
-        budgets: [],
+        transactions: [
+          { name: "Salary", date: day(1), amount: 3000 },
+          { name: "Shop", category: "Groceries", date: day(2), amount: -200 },
+        ],
+        budgets: [{ category: "Groceries", maximum: 400 }],
       }),
     );
 
