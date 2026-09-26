@@ -1,15 +1,11 @@
 import Login from "../_components/authentication/Login";
 
 export const metadata = {
-  title: "Login page",
+  title: "Log in",
 };
 
 function page() {
-  return (
-    <div>
-      <Login />
-    </div>
-  );
+  return <Login />;
 }
 
 export default page;

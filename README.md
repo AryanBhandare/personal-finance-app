@@ -1,6 +1,8 @@
-# Personal Finance App
+# Coinsight
 
-A budgeting app for tracking transactions, budgets, savings pots and recurring bills, with AI-generated spending recommendations. Built with Next.js 14 (App Router), TypeScript, Supabase and Tailwind CSS.
+**See where your money goes, and where it could grow.**
+
+Coinsight is a budgeting app for tracking transactions, budgets, savings pots and recurring bills, with AI-generated spending recommendations. Built with Next.js 14 (App Router), TypeScript, Supabase and Tailwind CSS.
 
 <!-- Add a screenshot of the Overview page here: ![Overview](docs/overview.png) -->
 

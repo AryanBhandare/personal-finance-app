@@ -7,10 +7,11 @@ const font = Plus_Jakarta_Sans({ subsets: ["latin"] });
 
 export const metadata = {
   title: {
-    template: "%s - Personal Finance",
-    default: "Welcome - Personal Finance app",
+    template: "%s · Coinsight",
+    default: "Coinsight · Smart personal finance",
   },
-  description: "Welcome to ease",
+  description:
+    "Track budgets, savings pots and bills, with AI insights on where your money goes.",
 };
 export default function RootLayout({
   children,

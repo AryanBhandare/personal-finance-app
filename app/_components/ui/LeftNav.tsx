@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Logo from "./Logo";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 
@@ -13,8 +14,6 @@ import {
   LuSettings,
 } from "react-icons/lu";
 import { IconType } from "react-icons";
-import logo from "@/public/assets/images/logo-large.svg";
-import logosm from "@/public/assets/images/logo-small.svg";
 
 import hideMenuIcon from "@/public/assets/images/icon-minimize-menu.svg";
 
@@ -57,13 +56,13 @@ function LeftNav({ menuSow, handleMenuShow }: navProp) {
           menuSow ? "" : "justify-center items-center"
         }`}
       >
-        <div
-          className={`relative h-[22px] ${
-            menuSow ? "ml-8 w-[121px] " : " w-[24px]"
-          }`}
+        <Link
+          href="/"
+          className={menuSow ? "ml-8" : ""}
+          aria-label="Coinsight home"
         >
-          <Image src={menuSow ? logo : logosm} alt="logo image" fill />
-        </div>
+          <Logo variant={menuSow ? "full" : "mark"} size={menuSow ? 30 : 32} />
+        </Link>
 
         <div className="flex flex-col gap-1.5">
           {menuSow ? (

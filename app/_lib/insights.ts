@@ -103,7 +103,7 @@ async function askOpenRouterModel(
     headers: {
       Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
       "Content-Type": "application/json",
-      "X-Title": "Personal Finance App",
+      "X-Title": "Coinsight",
     },
     body: JSON.stringify({
       model,

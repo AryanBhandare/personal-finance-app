@@ -12,7 +12,8 @@
   body {
     @apply text-grey-900;
     background-color: theme("colors.beige.100");
-    background-image: radial-gradient(
+    background-image:
+      radial-gradient(
         1200px 600px at 100% -10%,
         rgba(39, 124, 120, 0.06),
         transparent 60%
