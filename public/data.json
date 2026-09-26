@@ -1,0 +1,517 @@
+{
+  "balance": {
+    "current": 4836.0,
+    "income": 3814.25,
+    "expenses": 1700.5
+  },
+
+  "transactions": [
+    {
+      "id": "tx001",
+      "avatar": "./assets/images/avatars/emma-richardson.jpg",
+      "name": "Emma Richardson",
+      "category": "General",
+      "date": "2024-08-19T14:23:11Z",
+      "amount": 75.5,
+      "recurring": false
+    },
+    {
+      "id": "tx002",
+      "avatar": "./assets/images/avatars/savory-bites-bistro.jpg",
+      "name": "Savory Bites Bistro",
+      "category": "Dining Out",
+      "date": "2024-08-19T20:23:11Z",
+      "amount": -55.5,
+      "recurring": false
+    },
+    {
+      "id": "tx003",
+      "avatar": "./assets/images/avatars/daniel-carter.jpg",
+      "name": "Daniel Carter",
+      "category": "General",
+      "date": "2024-08-18T09:45:32Z",
+      "amount": -42.3,
+      "recurring": false
+    },
+    {
+      "id": "tx004",
+      "avatar": "./assets/images/avatars/sun-park.jpg",
+      "name": "Sun Park",
+      "category": "General",
+      "date": "2024-08-17T16:12:05Z",
+      "amount": 120.0,
+      "recurring": false
+    },
+    {
+      "id": "tx005",
+      "avatar": "./assets/images/avatars/urban-services-hub.jpg",
+      "name": "Urban Services Hub",
+      "category": "General",
+      "date": "2024-08-17T21:08:09Z",
+      "amount": -65.0,
+      "recurring": false
+    },
+    {
+      "id": "tx006",
+      "avatar": "./assets/images/avatars/liam-hughes.jpg",
+      "name": "Liam Hughes",
+      "category": "Groceries",
+      "date": "2024-08-15T18:20:33Z",
+      "amount": 65.75,
+      "recurring": false
+    },
+    {
+      "id": "tx007",
+      "avatar": "./assets/images/avatars/lily-ramirez.jpg",
+      "name": "Lily Ramirez",
+      "category": "General",
+      "date": "2024-08-14T13:05:27Z",
+      "amount": 50.0,
+      "recurring": false
+    },
+    {
+      "id": "tx008",
+      "avatar": "./assets/images/avatars/ethan-clark.jpg",
+      "name": "Ethan Clark",
+      "category": "Dining Out",
+      "date": "2024-08-13T20:15:59Z",
+      "amount": -32.5,
+      "recurring": false
+    },
+    {
+      "id": "tx009",
+      "avatar": "./assets/images/avatars/james-thompson.jpg",
+      "name": "James Thompson",
+      "category": "Entertainment",
+      "date": "2024-08-11T15:45:38Z",
+      "amount": -5.0,
+      "recurring": false
+    },
+    {
+      "id": "tx010",
+      "avatar": "./assets/images/avatars/pixel-playground.jpg",
+      "name": "Pixel Playground",
+      "category": "Entertainment",
+      "date": "2024-08-11T18:45:38Z",
+      "amount": -10.0,
+      "recurring": true
+    },
+    {
+      "id": "tx011",
+      "avatar": "./assets/images/avatars/ella-phillips.jpg",
+      "name": "Ella Phillips",
+      "category": "Dining Out",
+      "date": "2024-08-10T19:22:51Z",
+      "amount": -45.0,
+      "recurring": false
+    },
+    {
+      "id": "tx012",
+      "avatar": "./assets/images/avatars/sofia-peterson.jpg",
+      "name": "Sofia Peterson",
+      "category": "Transportation",
+      "date": "2024-08-08T08:55:17Z",
+      "amount": -15.0,
+      "recurring": false
+    },
+    {
+      "id": "tx013",
+      "avatar": "./assets/images/avatars/mason-martinez.jpg",
+      "name": "Mason Martinez",
+      "category": "Lifestyle",
+      "date": "2024-08-07T17:40:29Z",
+      "amount": -35.25,
+      "recurring": false
+    },
+    {
+      "id": "tx014",
+      "avatar": "./assets/images/avatars/green-plate-eatery.jpg",
+      "name": "Green Plate Eatery",
+      "category": "Groceries",
+      "date": "2024-08-06T08:25:44Z",
+      "amount": -78.5,
+      "recurring": false
+    },
+    {
+      "id": "tx015",
+      "avatar": "./assets/images/avatars/sebastian-cook.jpg",
+      "name": "Sebastian Cook",
+      "category": "Transportation",
+      "date": "2024-08-06T10:05:44Z",
+      "amount": -22.5,
+      "recurring": false
+    },
+    {
+      "id": "tx016",
+      "avatar": "./assets/images/avatars/william-harris.jpg",
+      "name": "William Harris",
+      "category": "Personal Care",
+      "date": "2024-08-05T14:30:56Z",
+      "amount": -10.0,
+      "recurring": false
+    },
+    {
+      "id": "tx017",
+      "avatar": "./assets/images/avatars/elevate-education.jpg",
+      "name": "Elevate Education",
+      "category": "Education",
+      "date": "2024-08-04T11:15:22Z",
+      "amount": -50.0,
+      "recurring": true
+    },
+    {
+      "id": "tx018",
+      "avatar": "./assets/images/avatars/serenity-spa-and-wellness.jpg",
+      "name": "Serenity Spa & Wellness",
+      "category": "Personal Care",
+      "date": "2024-08-03T14:00:37Z",
+      "amount": -30.0,
+      "recurring": true
+    },
+    {
+      "id": "tx019",
+      "avatar": "./assets/images/avatars/spark-electric-solutions.jpg",
+      "name": "Spark Electric Solutions",
+      "category": "Bills",
+      "date": "2024-08-02T09:25:11Z",
+      "amount": -100.0,
+      "recurring": true
+    },
+    {
+      "id": "tx020",
+      "avatar": "./assets/images/avatars/rina-sato.jpg",
+      "name": "Rina Sato",
+      "category": "Bills",
+      "date": "2024-08-02T13:31:11Z",
+      "amount": -50.0,
+      "recurring": false
+    },
+    {
+      "id": "tx021",
+      "avatar": "./assets/images/avatars/swift-ride-share.jpg",
+      "name": "Swift Ride Share",
+      "category": "Transportation",
+      "date": "2024-08-01T18:40:33Z",
+      "amount": -18.75,
+      "recurring": false
+    },
+    {
+      "id": "tx022",
+      "avatar": "./assets/images/avatars/aqua-flow-utilities.jpg",
+      "name": "Aqua Flow Utilities",
+      "category": "Bills",
+      "date": "2024-07-30T13:20:14Z",
+      "amount": -100.0,
+      "recurring": true
+    },
+    {
+      "id": "tx023",
+      "avatar": "./assets/images/avatars/ecofuel-energy.jpg",
+      "name": "EcoFuel Energy",
+      "category": "Bills",
+      "date": "2024-07-29T11:55:29Z",
+      "amount": -35.0,
+      "recurring": true
+    },
+    {
+      "id": "tx024",
+      "avatar": "./assets/images/avatars/yuna-kim.jpg",
+      "name": "Yuna Kim",
+      "category": "Dining Out",
+      "date": "2024-07-29T13:51:29Z",
+      "amount": -28.5,
+      "recurring": false
+    },
+    {
+      "id": "tx025",
+      "avatar": "./assets/images/avatars/flavor-fiesta.jpg",
+      "name": "Flavor Fiesta",
+      "category": "Dining Out",
+      "date": "2024-07-27T20:15:06Z",
+      "amount": -42.75,
+      "recurring": false
+    },
+    {
+      "id": "tx026",
+      "avatar": "./assets/images/avatars/groom-and-glow.jpg",
+      "name": "Groom & Glow",
+      "category": "Personal Care",
+      "date": "2024-07-26T16:45:38Z",
+      "amount": -25.0,
+      "recurring": false
+    },
+    {
+      "id": "tx027",
+      "avatar": "./assets/images/avatars/green-leaf-groceries.jpg",
+      "name": "Green Leaf Groceries",
+      "category": "Groceries",
+      "date": "2024-07-25T09:20:33Z",
+      "amount": -95.5,
+      "recurring": false
+    },
+    {
+      "id": "tx028",
+      "avatar": "./assets/images/avatars/chase-wells.jpg",
+      "name": "Chase Wells",
+      "category": "General",
+      "date": "2024-07-24T12:45:33Z",
+      "amount": 75.0,
+      "recurring": false
+    },
+    {
+      "id": "tx029",
+      "avatar": "./assets/images/avatars/olive-branch-pharmacy.jpg",
+      "name": "Olive Branch Pharmacy",
+      "category": "Health",
+      "date": "2024-07-23T15:25:50Z",
+      "amount": -20.0,
+      "recurring": false
+    },
+    {
+      "id": "tx030",
+      "avatar": "./assets/images/avatars/bella-davis.jpg",
+      "name": "Bella Davis",
+      "category": "Entertainment",
+      "date": "2024-07-22T10:05:44Z",
+      "amount": -15.0,
+      "recurring": false
+    },
+    {
+      "id": "tx031",
+      "avatar": "./assets/images/avatars/oliver-brown.jpg",
+      "name": "Oliver Brown",
+      "category": "General",
+      "date": "2024-07-21T14:35:44Z",
+      "amount": 100.0,
+      "recurring": false
+    },
+    {
+      "id": "tx032",
+      "avatar": "./assets/images/avatars/emma-jones.jpg",
+      "name": "Emma Jones",
+      "category": "Groceries",
+      "date": "2024-07-20T16:30:44Z",
+      "amount": -85.75,
+      "recurring": false
+    },
+    {
+      "id": "tx033",
+      "avatar": "./assets/images/avatars/anna-white.jpg",
+      "name": "Anna White",
+      "category": "Personal Care",
+      "date": "2024-07-19T10:15:44Z",
+      "amount": -40.0,
+      "recurring": false
+    },
+    {
+      "id": "tx034",
+      "avatar": "./assets/images/avatars/jacob-wilson.jpg",
+      "name": "Jacob Wilson",
+      "category": "Entertainment",
+      "date": "2024-07-18T11:20:44Z",
+      "amount": -25.0,
+      "recurring": false
+    },
+    {
+      "id": "tx035",
+      "avatar": "./assets/images/avatars/harper-lee.jpg",
+      "name": "Harper Lee",
+      "category": "Lifestyle",
+      "date": "2024-07-17T12:05:44Z",
+      "amount": -30.0,
+      "recurring": false
+    },
+    {
+      "id": "tx036",
+      "avatar": "./assets/images/avatars/charlie-smith.jpg",
+      "name": "Charlie Smith",
+      "category": "Dining Out",
+      "date": "2024-07-16T14:25:44Z",
+      "amount": -50.0,
+      "recurring": false
+    },
+    {
+      "id": "tx037",
+      "avatar": "./assets/images/avatars/natalie-thomas.jpg",
+      "name": "Natalie Thomas",
+      "category": "Groceries",
+      "date": "2024-07-15T13:45:44Z",
+      "amount": -90.5,
+      "recurring": false
+    },
+    {
+      "id": "tx038",
+      "avatar": "./assets/images/avatars/jack-martin.jpg",
+      "name": "Jack Martin",
+      "category": "General",
+      "date": "2024-07-14T11:15:44Z",
+      "amount": 55.0,
+      "recurring": false
+    },
+    {
+      "id": "tx039",
+      "avatar": "./assets/images/avatars/lucas-robinson.jpg",
+      "name": "Lucas Robinson",
+      "category": "Personal Care",
+      "date": "2024-07-13T16:10:44Z",
+      "amount": -25.0,
+      "recurring": false
+    },
+    {
+      "id": "tx040",
+      "avatar": "./assets/images/avatars/grace-miller.jpg",
+      "name": "Grace Miller",
+      "category": "Dining Out",
+      "date": "2024-07-12T18:45:44Z",
+      "amount": -60.0,
+      "recurring": false
+    },
+    {
+      "id": "tx041",
+      "avatar": "./assets/images/avatars/elijah-morgan.jpg",
+      "name": "Elijah Morgan",
+      "category": "Bills",
+      "date": "2024-07-11T09:55:44Z",
+      "amount": -100.0,
+      "recurring": true
+    },
+    {
+      "id": "tx042",
+      "avatar": "./assets/images/avatars/chloe-davis.jpg",
+      "name": "Chloe Davis",
+      "category": "Education",
+      "date": "2024-07-10T08:30:44Z",
+      "amount": -55.0,
+      "recurring": false
+    },
+    {
+      "id": "tx043",
+      "avatar": "./assets/images/avatars/leo-johnson.jpg",
+      "name": "Leo Johnson",
+      "category": "Transportation",
+      "date": "2024-07-09T19:05:44Z",
+      "amount": -20.0,
+      "recurring": false
+    },
+    {
+      "id": "tx044",
+      "avatar": "./assets/images/avatars/emily-williams.jpg",
+      "name": "Emily Williams",
+      "category": "Personal Care",
+      "date": "2024-07-08T15:15:44Z",
+      "amount": -30.0,
+      "recurring": false
+    },
+    {
+      "id": "tx045",
+      "avatar": "./assets/images/avatars/benjamin-moore.jpg",
+      "name": "Benjamin Moore",
+      "category": "General",
+      "date": "2024-07-07T18:35:44Z",
+      "amount": 65.0,
+      "recurring": false
+    },
+    {
+      "id": "tx046",
+      "avatar": "./assets/images/avatars/olivia-james.jpg",
+      "name": "Olivia James",
+      "category": "Lifestyle",
+      "date": "2024-07-06T17:20:44Z",
+      "amount": -45.5,
+      "recurring": false
+    },
+    {
+      "id": "tx047",
+      "avatar": "./assets/images/avatars/henry-martinez.jpg",
+      "name": "Henry Martinez",
+      "category": "Groceries",
+      "date": "2024-07-05T16:45:44Z",
+      "amount": -75.0,
+      "recurring": false
+    },
+    {
+      "id": "tx048",
+      "avatar": "./assets/images/avatars/sophia-anderson.jpg",
+      "name": "Sophia Anderson",
+      "category": "Entertainment",
+      "date": "2024-07-04T20:10:44Z",
+      "amount": -25.0,
+      "recurring": false
+    },
+    {
+      "id": "tx049",
+      "avatar": "./assets/images/avatars/ava-baker.jpg",
+      "name": "Ava Baker",
+      "category": "Bills",
+      "date": "2024-07-03T13:05:44Z",
+      "amount": -35.0,
+      "recurring": false
+    }
+  ],
+  "budgets": [
+    {
+      "id": "bud001",
+
+      "category": "Entertainment",
+      "maximum": 50.0,
+      "theme": "green"
+    },
+    {
+      "id": "bud002",
+
+      "category": "Bills",
+      "maximum": 750.0,
+      "theme": "cyan"
+    },
+    {
+      "id": "bud003",
+
+      "category": "Dining Out",
+      "maximum": 75.0,
+      "theme": "yellow"
+    },
+    {
+      "id": "bud004",
+      "category": "Personal Care",
+      "maximum": 100.0,
+      "theme": "navy"
+    }
+  ],
+  "pots": [
+    {
+      "id": "pot001",
+      "name": "Savings",
+      "target": 2000.0,
+      "total": 159.0,
+      "theme": "green"
+    },
+    {
+      "id": "pot002",
+      "name": "Concert Ticket",
+      "target": 150.0,
+      "total": 110.0,
+      "theme": "navy"
+    },
+    {
+      "id": "pot003",
+      "name": "Gift",
+      "target": 150.0,
+      "total": 110.0,
+      "theme": "cyan"
+    },
+    {
+      "id": "pot004",
+      "name": "New Laptop",
+      "target": 1000.0,
+      "total": 10.0,
+      "theme": "yellow"
+    },
+    {
+      "id": "pot005",
+      "name": "Holiday",
+      "target": 1440.0,
+      "total": 531.0,
+      "theme": "purple"
+    }
+  ]
+}

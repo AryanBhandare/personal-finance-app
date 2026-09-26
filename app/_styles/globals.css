@@ -1,0 +1,97 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply text-grey-900;
+    background-color: theme("colors.beige.100");
+    background-image: radial-gradient(
+        1200px 600px at 100% -10%,
+        rgba(39, 124, 120, 0.06),
+        transparent 60%
+      ),
+      radial-gradient(
+        900px 500px at -10% 110%,
+        rgba(242, 205, 172, 0.18),
+        transparent 60%
+      );
+    background-attachment: fixed;
+  }
+
+  ::selection {
+    background: rgba(39, 124, 120, 0.2);
+  }
+
+  :focus-visible {
+    outline: 2px solid theme("colors.secondary.green");
+    outline-offset: 2px;
+  }
+
+  button {
+    @apply transition-colors;
+  }
+
+  /* Hide number input spinners for cleaner currency fields */
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+
+  input::placeholder {
+    @apply text-grey-300;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: theme("colors.grey.300") transparent;
+  }
+}
+
+@layer components {
+  .spinner {
+    margin: 3.2rem auto 1.6rem;
+    width: 60px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 5px solid theme("colors.secondary.green");
+    border-right-color: rgba(39, 124, 120, 0.15);
+    animation: rotate 1s infinite linear;
+  }
+
+  .spinner-mini {
+    margin: 0;
+    width: 20px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    animation: rotate 1s infinite linear;
+  }
+
+  .auth {
+    min-height: 100dvh;
+  }
+
+  @keyframes rotate {
+    to {
+      transform: rotate(1turn);
+    }
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
